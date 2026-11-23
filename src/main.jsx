@@ -1,200 +1,269 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Copy, Crown, Globe2, Landmark, LockKeyhole, Menu, Minus, PackageCheck, Plus, Shield, ShoppingBag, ShoppingCart, Swords, Trash2, Truck, UserRound, UsersRound, X, Zap } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, Crown, Gem, Globe2, Hammer, HeartHandshake, Menu, Minus, PackageCheck, Plus, Shield, ShoppingBag, ShoppingCart, Swords, Truck, UserRound, UsersRound, X, Zap } from 'lucide-react'
 import './style.css'
 
 const IP = 'craftsolar.redstone.tr:25567'
 const DISCORD = 'https://discord.gg/X86xYYw73N'
-const ADMIN_ROUTE = '#/cs-yonetim-7f3c9a2e-archive'
-const DELIVERY = 'Satın alınan tüm eşyalar ve rütbeler oyun içi yetkililer tarafından kontrol edilip teslim edilecektir.'
+const ADMIN_ROUTE = 'cs-yonetim-7f3c9a2e-archive'
+const DELIVERY = 'Satın alınan tüm eşyalar ve rütbeler oyun içi yetkililer tarafından kontrol edilip teslim edilir.'
 const products = [
-  { id: 'vip', name: 'VIP', price: 10, category: 'Rütbeler', tag: 'Başlangıç', description: 'Kasabana ilk adımı atarken küçük ayrıcalıklar ve özel bir isim rengi.', perks: ['VIP sohbet etiketi', 'Özel giriş duyurusu', 'Kasabana uygun başlangıç ayrıcalıkları'], icon: Crown, art: 'rank rank-bronze' },
-  { id: 'solar', name: 'SOLAR', price: 15, category: 'Rütbeler', tag: 'Popüler', description: 'Güneşin gücünü taşıyan, maceranda sana eşlik eden orta seviye rütbe.', perks: ['SOLAR sohbet etiketi', 'VIP ayrıcalıkları', 'Ek günlük ödül'], icon: Zap, art: 'rank rank-sun' },
-  { id: 'solar-plus', name: 'SOLAR+', price: 20, category: 'Rütbeler', tag: 'Üst rütbe', description: 'CraftSolar koleksiyonunun en parlak rütbesi. Her avantaj tek pakette.', perks: ['SOLAR+ sohbet etiketi', 'SOLAR ayrıcalıkları', 'Özel kozmetik efekt'], icon: Crown, art: 'rank rank-plus' },
-  { id: 'spider', name: 'Örümcek Kılıç', price: 35, category: 'Silahlar', tag: 'Özel eşya', description: 'Örümceklerin karanlık mağaralarından ilham alan özel bir kılıç.', perks: ['Örümcek temalı özel isim', 'Towny savaşlarına hazır', 'Oyun içi yetkili teslimatı'], icon: Swords, art: 'weapon weapon-violet' },
-  { id: 'weakness', name: 'Zayıflık Kılıç', price: 40, category: 'Silahlar', tag: 'Özel eşya', description: 'Rakibinin hızını kesen, zayıflık etkisiyle anılan özel kılıç.', perks: ['Zayıflık temalı özel isim', 'Towny savaşlarına hazır', 'Oyun içi yetkili teslimatı'], icon: Swords, art: 'weapon weapon-mint' },
-  { id: 'lightning', name: 'Şimşek Kılıç', price: 45, category: 'Silahlar', tag: 'Özel eşya', description: 'Bir şimşek gibi hızlı. Envanterinde gözden kaçması imkânsız.', perks: ['Şimşek temalı özel isim', 'Towny savaşlarına hazır', 'Oyun içi yetkili teslimatı'], icon: Zap, art: 'weapon weapon-blue' },
-  { id: 'prot5', name: 'Koruma 5 Netherite Set', price: 50, category: 'Setler', tag: 'Zırh seti', description: 'Sınırda ve kuşatma alanında dayanıklılığını artıracak netherite zırh seti.', perks: ['Koruma V büyüsü', 'Tam netherite zırh seti', 'Oyun içi yetkili teslimatı'], icon: Shield, art: 'armor armor-purple' },
-  { id: 'prot6', name: 'Koruma 6 Netherite Set', price: 55, category: 'Setler', tag: 'Komutan seçimi', description: 'Kıtanın en zorlu çatışmaları için hazırlanmış, üst seviye zırh seti.', perks: ['Koruma VI büyüsü', 'Tam netherite zırh seti', 'Oyun içi yetkili teslimatı'], icon: Shield, art: 'armor armor-amber' }
+  { id: 'vip', name: 'VIP', price: 10, category: 'Rütbeler', label: 'İlk adım', description: 'CraftSolar dünyasında yerini alırken sana eşlik edecek özel rütbe.', icon: Crown, tone: 'copper' },
+  { id: 'solar', name: 'SOLAR', price: 15, category: 'Rütbeler', label: 'Güneşin gücü', description: 'SOLAR rütbesiyle kasabanın hikâyesine kendi rengini kat.', icon: Zap, tone: 'gold' },
+  { id: 'solar-plus', name: 'SOLAR+', price: 20, category: 'Rütbeler', label: 'Üst rütbe', description: 'CraftSolar rütbe koleksiyonunun en parlak üyesi.', icon: Gem, tone: 'cream' },
+  { id: 'spider', name: 'Örümcek Kılıç', price: 35, category: 'Silahlar', label: 'Özel eşya', description: 'Örümcek temasından ilham alan, envanterine özel kılıç.', icon: Swords, tone: 'violet' },
+  { id: 'weakness', name: 'Zayıflık Kılıç', price: 40, category: 'Silahlar', label: 'Özel eşya', description: 'Zayıflık temalı, savaş koleksiyonuna özel kılıç.', icon: Swords, tone: 'mint' },
+  { id: 'lightning', name: 'Şimşek Kılıç', price: 45, category: 'Silahlar', label: 'Özel eşya', description: 'Şimşek temalı görünümüyle koleksiyondaki yerini alır.', icon: Zap, tone: 'blue' },
+  { id: 'prot5', name: 'Koruma 5 Netherite Set', price: 50, category: 'Setler', label: 'Zırh seti', description: 'Koruma V büyülü tam netherite zırh seti.', icon: Shield, tone: 'purple' },
+  { id: 'prot6', name: 'Koruma 6 Netherite Set', price: 55, category: 'Setler', label: 'Zırh seti', description: 'Koruma VI büyülü tam netherite zırh seti.', icon: Shield, tone: 'amber' }
 ]
-const features = [
-  { no: '01', title: 'Sınırları yeniden çiz', name: 'Gerçek dünya haritası', text: 'Tanıdık coğrafyada kasabanı kur. Stratejik bölgeleri tut, ticaret yollarını kendi lehine çevir.', icon: Globe2, className: 'feature-map' },
-  { no: '02', title: 'Emek, gerçek değer', name: 'Oyuncu ekonomisi', text: 'Üret, pazarlık yap ve büyü. P2W yok; ekonominin dengesi oyuncuların elinde.', icon: Landmark, className: 'feature-economy' },
-  { no: '03', title: 'Dostun kim, sınırın nerede?', name: 'Kuşatma ve diplomasi', text: 'İttifak imzala, savaş ilan et ya da barışla sınırlarını güvenceye al.', icon: Swords, className: 'feature-war' },
-  { no: '04', title: 'Her saniye akıcı', name: 'Kesintisiz oyun', text: 'Güçlü altyapıda PvP, şehir hayatı ve etkinlikler aynı dünyada buluşuyor.', icon: Zap, className: 'feature-performance' },
-  { no: '05', title: 'Takvimde yerini al', name: 'Düzenli etkinlikler', text: 'Haftalık turnuvalar, KoTH savaşları ve sürpriz çekilişlerde yerini al.', icon: UsersRound, className: 'feature-events' }
+
+const featureItems = [
+  { title: 'Gerçek Dünya Haritası', text: 'Stratejik bölgeleri ele geçir, ticaret yollarını kontrol et.', icon: Globe2 },
+  { title: 'Oyuncu Ekonomisi', text: 'P2W yok. Emek veren ve ticaret yapan kazanır.', icon: Hammer },
+  { title: 'Kuşatma ve Diplomasi', text: 'İttifak kur, savaş ilan et veya barış anlaşması yap.', icon: HeartHandshake },
+  { title: 'Birlikte oyna', text: 'Haftalık turnuvalar, KoTH savaşları ve topluluk etkinlikleri.', icon: UsersRound }
 ]
+
 const readStore = (key, fallback) => {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback } catch { return fallback }
 }
-const money = value => `${value} TL`
+const price = amount => `${amount} TL`
+const dateText = value => new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
 
 function App() {
+  const [page, setPage] = useState(() => location.hash.replace(/^#\/?/, '') || 'home')
   const [users, setUsers] = useState(() => readStore('craftsolar-users', []))
   const [orders, setOrders] = useState(() => readStore('craftsolar-orders', []))
   const [session, setSession] = useState(() => readStore('craftsolar-session', null))
   const [cart, setCart] = useState(() => readStore('craftsolar-cart', []))
-  const [activeCategory, setActiveCategory] = useState('Tümü')
+  const [category, setCategory] = useState('Tümü')
+  const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
-  const [authOpen, setAuthOpen] = useState(false)
-  const [authMode, setAuthMode] = useState('register')
+  const [authMode, setAuthMode] = useState(null)
+  const [authForm, setAuthForm] = useState({ username: '', password: '' })
+  const [authError, setAuthError] = useState('')
   const [profileOpen, setProfileOpen] = useState(false)
-  const [cartOpen, setCartOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [cartOpen, setCartOpen] = useState(false)
   const [toast, setToast] = useState('')
   const [copied, setCopied] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [notice, setNotice] = useState(null)
-  const [route, setRoute] = useState(location.hash)
-  const [query, setQuery] = useState('')
-  const [authError, setAuthError] = useState('')
-  const [form, setForm] = useState({ username: '', password: '' })
+  const [successOrder, setSuccessOrder] = useState(null)
+  const [orderSearch, setOrderSearch] = useState('')
 
   useEffect(() => { localStorage.setItem('craftsolar-users', JSON.stringify(users)) }, [users])
   useEffect(() => { localStorage.setItem('craftsolar-orders', JSON.stringify(orders)) }, [orders])
   useEffect(() => { localStorage.setItem('craftsolar-session', JSON.stringify(session)) }, [session])
   useEffect(() => { localStorage.setItem('craftsolar-cart', JSON.stringify(cart)) }, [cart])
   useEffect(() => {
-    const update = () => setRoute(location.hash)
-    addEventListener('hashchange', update)
-    return () => removeEventListener('hashchange', update)
+    const onHash = () => { setPage(location.hash.replace(/^#\/?/, '') || 'home'); setMobileOpen(false); setProfileOpen(false); window.scrollTo(0, 0) }
+    addEventListener('hashchange', onHash)
+    return () => removeEventListener('hashchange', onHash)
   }, [])
   useEffect(() => {
+    const activeDialog = Boolean(authMode || selected || successOrder || cartOpen)
+    if (!activeDialog) return
+    const onKey = event => {
+      if (event.key !== 'Escape') return
+      setAuthMode(null)
+      setSelected(null)
+      setSuccessOrder(null)
+      setCartOpen(false)
+    }
+    addEventListener('keydown', onKey)
+    return () => removeEventListener('keydown', onKey)
+  }, [authMode, selected, successOrder, cartOpen])
+  useEffect(() => {
     if (!toast) return
-    const timer = setTimeout(() => setToast(''), 2600)
+    const timer = setTimeout(() => setToast(''), 2500)
     return () => clearTimeout(timer)
   }, [toast])
 
-  const filtered = useMemo(() => products.filter(item => (activeCategory === 'Tümü' || item.category === activeCategory) && item.name.toLocaleLowerCase('tr').includes(query.toLocaleLowerCase('tr'))), [activeCategory, query])
   const cartCount = cart.reduce((sum, line) => sum + line.quantity, 0)
-  const total = cart.reduce((sum, line) => sum + products.find(item => item.id === line.id).price * line.quantity, 0)
-  const mine = orders.filter(order => order.username === session?.username)
-  const isAdmin = route === ADMIN_ROUTE
+  const cartTotal = cart.reduce((sum, line) => sum + (products.find(product => product.id === line.id)?.price ?? 0) * line.quantity, 0)
+  const myOrders = orders.filter(order => order.username === session?.username)
+  const visibleProducts = useMemo(() => products.filter(item => (category === 'Tümü' || item.category === category) && item.name.toLocaleLowerCase('tr').includes(search.toLocaleLowerCase('tr'))), [category, search])
 
+  const navigate = to => { location.hash = `/${to}`; setMobileOpen(false); setProfileOpen(false) }
+  const copyIp = async () => {
+    try { await navigator.clipboard.writeText(IP); setCopied(true); setToast('Sunucu adresi kopyalandı'); setTimeout(() => setCopied(false), 1500) }
+    catch { setToast(IP) }
+  }
   const addToCart = id => {
     setCart(current => current.some(line => line.id === id) ? current.map(line => line.id === id ? { ...line, quantity: line.quantity + 1 } : line) : [...current, { id, quantity: 1 }])
-    setToast('Ürün sepete eklendi')
     setSelected(null)
+    setToast('Ürün sepete eklendi')
   }
-  const changeQuantity = (id, amount) => setCart(current => current.map(line => line.id === id ? { ...line, quantity: line.quantity + amount } : line).filter(line => line.quantity > 0))
-  const copyIp = async () => {
-    try {
-      await navigator.clipboard.writeText(IP)
-      setCopied(true)
-      setToast('IP adresi kopyalandı')
-      setTimeout(() => setCopied(false), 1800)
-    } catch { setToast(IP) }
-  }
-  const openAuth = mode => {
-    setAuthMode(mode)
-    setAuthError('')
-    setForm({ username: '', password: '' })
-    setAuthOpen(true)
-    setProfileOpen(false)
-  }
+  const updateQuantity = (id, amount) => setCart(current => current.map(line => line.id === id ? { ...line, quantity: line.quantity + amount } : line).filter(line => line.quantity > 0))
+  const openAuth = mode => { setAuthMode(mode); setAuthError(''); setAuthForm({ username: '', password: '' }); setProfileOpen(false) }
   const submitAuth = event => {
     event.preventDefault()
-    const username = form.username.trim()
-    if (!/^[A-Za-z0-9_]{3,16}$/.test(username)) return setAuthError('Minecraft nicki 3–16 karakter olmalı; harf, rakam ve _ kullanabilirsin.')
-    if (form.password.length < 4) return setAuthError('Şifre en az 4 karakter olmalı.')
+    const username = authForm.username.trim()
+    if (!/^[A-Za-z0-9_]{3,16}$/.test(username)) return setAuthError('Minecraft nicki 3 ile 16 karakter arasında olmalı.')
+    if (authForm.password.length < 4) return setAuthError('Şifre en az 4 karakter olmalı.')
     const found = users.find(user => user.username.toLowerCase() === username.toLowerCase())
     if (authMode === 'register') {
       if (found) return setAuthError('Bu Minecraft nickiyle bir hesap zaten var.')
-      setUsers(current => [...current, { username, password: form.password, createdAt: new Date().toISOString() }])
+      setUsers(current => [...current, { username, password: authForm.password, createdAt: new Date().toISOString() }])
       setSession({ username })
       setToast(`Hoş geldin, ${username}`)
     } else {
-      if (!found || found.password !== form.password) return setAuthError('Minecraft nicki veya şifre hatalı.')
+      if (!found || found.password !== authForm.password) return setAuthError('Minecraft nicki veya şifre hatalı.')
       setSession({ username: found.username })
       setToast(`Tekrar hoş geldin, ${found.username}`)
     }
-    setAuthOpen(false)
+    setAuthMode(null)
   }
   const checkout = () => {
-    if (!session) {
-      setCartOpen(false)
-      openAuth('login')
-      return
-    }
+    if (!session) { setCartOpen(false); openAuth('login'); return }
     if (!cart.length || busy) return
     setBusy(true)
     setTimeout(() => {
-      const order = { id: `CS-${Date.now().toString(36).toUpperCase()}`, username: session.username, items: cart.map(line => ({ ...line })), total, createdAt: new Date().toISOString(), status: 'Bekliyor' }
+      const order = { id: `CS-${Date.now().toString(36).toUpperCase()}`, username: session.username, items: cart.map(line => ({ ...line })), total: cartTotal, createdAt: new Date().toISOString(), status: 'Bekliyor' }
       setOrders(current => [order, ...current])
       setCart([])
       setBusy(false)
       setCartOpen(false)
-      setNotice(order)
-    }, 1500)
+      setSuccessOrder(order)
+    }, 1200)
   }
-  const logout = () => {
-    setSession(null)
-    setProfileOpen(false)
-    setToast('Oturum kapatıldı')
-  }
-  const setOrderStatus = (id, status) => setOrders(current => current.map(order => order.id === id ? { ...order, status } : order))
-  const scrollTo = id => {
-    setMobileOpen(false)
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-  }
+  const logout = () => { setSession(null); setProfileOpen(false); navigate('home'); setToast('Oturum kapatıldı') }
+  const changeStatus = (id, status) => setOrders(current => current.map(order => order.id === id ? { ...order, status } : order))
 
+  if (page === ADMIN_ROUTE) return <AdminPage users={users} orders={orders} changeStatus={changeStatus} />
+
+  return <div className="site-shell">
+    <div className="topline"><span className="sun-dot" /> CraftSolar Towny dünyasına hoş geldin <a href={DISCORD} target="_blank" rel="noreferrer">Discord’a katıl <ArrowUpRight size={13} /></a></div>
+    <header className="header">
+      <a href="#/home" className="brand" aria-label="CraftSolar ana sayfa"><img src="/craftsolar-emblem.png" alt="" /><span>CRAFT<span>SOLAR</span><small>GERÇEK TOWNY DENEYİMİ</small></span></a>
+      <nav className={mobileOpen ? 'navigation nav-open' : 'navigation'} aria-label="Ana menü">
+        <NavLink to="home" page={page} navigate={navigate}>Anasayfa</NavLink>
+        <NavLink to="towny" page={page} navigate={navigate}>Towny</NavLink>
+        <NavLink to="rehber" page={page} navigate={navigate}>Rehber</NavLink>
+        <NavLink to="magaza" page={page} navigate={navigate}>Mağaza</NavLink>
+        <NavLink to="sss" page={page} navigate={navigate}>Yardım</NavLink>
+      </nav>
+      <div className="header-tools">
+        <button className="header-icon" onClick={() => setCartOpen(true)} aria-label={`Sepeti aç, ${cartCount} ürün`}><ShoppingCart size={18} />{cartCount > 0 && <span className="cart-badge">{cartCount}</span>}</button>
+        {session ? <div className="profile-box"><button className="profile-button" onClick={() => setProfileOpen(!profileOpen)}><span>{session.username.slice(0, 1).toUpperCase()}</span><b>{session.username}</b><ChevronDown size={13} /></button>{profileOpen && <div className="profile-pop"><button onClick={() => navigate('hesabim')}>Siparişlerim <span>{myOrders.length}</span></button><button onClick={logout}>Oturumu kapat</button></div>}</div> : <button className="account-button" onClick={() => openAuth('login')}><UserRound size={16} /><span>Giriş yap</span></button>}
+        <button className="menu-toggle" aria-label={mobileOpen ? 'Menüyü kapat' : 'Menüyü aç'} aria-expanded={mobileOpen} onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X /> : <Menu />}</button>
+      </div>
+    </header>
+    <main key={page}>
+      {page === 'home' && <HomePage navigate={navigate} copyIp={copyIp} copied={copied} addToCart={addToCart} openProduct={setSelected} orders={orders} />}
+      {page === 'towny' && <TownyPage navigate={navigate} copyIp={copyIp} />}
+      {page === 'rehber' && <GuidePage navigate={navigate} copyIp={copyIp} />}
+      {page === 'magaza' && <StorePage category={category} setCategory={setCategory} search={search} setSearch={setSearch} products={visibleProducts} addToCart={addToCart} openProduct={setSelected} cartCount={cartCount} openCart={() => setCartOpen(true)} />}
+      {page === 'sss' && <HelpPage navigate={navigate} />}
+      {page === 'hesabim' && <AccountPage session={session} orders={myOrders} openAuth={openAuth} navigate={navigate} logout={logout} />}
+      {!['home', 'towny', 'rehber', 'magaza', 'sss', 'hesabim'].includes(page) && <NotFound navigate={navigate} />}
+    </main>
+    <Footer navigate={navigate} />
+
+    {cartOpen && <><button className="overlay" aria-label="Sepeti kapat" onClick={() => setCartOpen(false)} /><aside className="cart-panel" aria-label="Alışveriş sepeti"><div className="panel-head"><div><small>CRAFTSOLAR MAĞAZA</small><h2>Sepetim <span>({cartCount})</span></h2></div><button className="close-icon" aria-label="Kapat" onClick={() => setCartOpen(false)}><X /></button></div>{cart.length ? <><div className="cart-items">{cart.map(line => { const item = products.find(product => product.id === line.id); if (!item) return null; const Icon = item.icon; return <article className="cart-item" key={line.id}><div className={`cart-art tone-${item.tone}`}><Icon /></div><div className="cart-description"><b>{item.name}</b><span>{price(item.price)} / adet</span><div className="quantity"><button aria-label={`${item.name} adedini azalt`} onClick={() => updateQuantity(item.id, -1)}><Minus size={13} /></button><span>{line.quantity}</span><button aria-label={`${item.name} adedini artır`} onClick={() => updateQuantity(item.id, 1)}><Plus size={13} /></button></div></div><strong className="cart-line-price">{price(item.price * line.quantity)}</strong></article> })}</div><div className="cart-footer"><p><Shield size={15} /> Demo sipariş, gerçek ödeme alınmaz.</p><div className="total-line"><span>Toplam</span><b>{price(cartTotal)}</b></div><button className="button button-orange full-button" disabled={busy} onClick={checkout}>{busy ? 'Sipariş hazırlanıyor…' : 'Satın alımı tamamla'} <ArrowRight size={17} /></button><small>{DELIVERY}</small></div></> : <div className="cart-empty"><ShoppingBag size={31} /><h3>Sepetin boş</h3><p>Mağazadan kasabana uygun bir parça seç.</p><button className="button button-outline" onClick={() => { setCartOpen(false); navigate('magaza') }}>Mağazaya git</button></div>}</aside></>}
+    {selected && <ProductDialog product={selected} close={() => setSelected(null)} add={() => addToCart(selected.id)} />}
+    {authMode && <AuthDialog mode={authMode} setMode={setAuthMode} form={authForm} setForm={setAuthForm} error={authError} submit={submitAuth} close={() => setAuthMode(null)} />}
+    {successOrder && <SuccessDialog order={successOrder} close={() => setSuccessOrder(null)} goOrders={() => { setSuccessOrder(null); navigate('hesabim') }} />}
+    {toast && <div className="toast"><Check size={15} />{toast}</div>}
+  </div>
+}
+
+function NavLink({ to, page, navigate, children }) {
+  return <a href={`#/${to}`} className={page === to ? 'nav-link selected' : 'nav-link'} aria-current={page === to ? 'page' : undefined} onClick={event => { event.preventDefault(); navigate(to) }}>{children}</a>
+}
+
+function Hero({ eyebrow, title, text, buttons = true, copyIp, copied }) {
+  return <section className="hero"><img className="hero-image" src="/craftsolar-banner.png" alt="Gün batımında CraftSolar Towny dünyası" fetchPriority="high" width="1672" height="836" /><div className="hero-cover" /><div className="hero-copy"><span className="hero-eyebrow"><i />{eyebrow}</span><h1>{title}</h1><p>{text}</p>{buttons && <div className="hero-ctas"><a href="#/towny" className="button button-orange">Dünyayı keşfet <ArrowRight size={16} /></a><button className="button button-glass" onClick={copyIp}>{copied ? 'Adres kopyalandı' : IP}<Copy size={15} /></button></div>}</div><span className="hero-coordinate">CRAFTSOLAR <i /> TOWNY DÜNYASI</span></section>
+}
+
+function HomePage({ navigate, copyIp, copied, addToCart, openProduct, orders }) {
   return <>
-    {isAdmin ? <AdminView users={users} orders={orders} setOrderStatus={setOrderStatus} /> : <>
-      <div className="announcement"><span className="live-dot" />Yeni dünyaya hazır mısın? <a href={DISCORD} target="_blank" rel="noreferrer">Discord’a katıl <ArrowUpRight size={13} /></a></div>
-      <header className="site-header">
-        <a className="brand" href="#top" aria-label="CraftSolar ana sayfa"><span className="brand-mark"><img src="/craftsolar-emblem.png" alt="" /></span><span className="brand-name">CRAFT<span>SOLAR</span><small>TOWNY • 2026</small></span></a>
-        <nav className={mobileOpen ? 'main-nav nav-open' : 'main-nav'}>
-          <button onClick={() => scrollTo('world')}>Dünya</button><button onClick={() => scrollTo('store')}>Mağaza</button><button onClick={() => scrollTo('about')}>Sunucu</button>
-          <a className="nav-discord" href={DISCORD} target="_blank" rel="noreferrer">Discord <ArrowUpRight size={14} /></a>
-        </nav>
-        <div className="header-actions">
-          <button className="icon-button cart-trigger" aria-label="Sepeti aç" onClick={() => setCartOpen(true)}><ShoppingCart size={18} />{cartCount > 0 && <span className="cart-count">{cartCount}</span>}</button>
-          {session ? <div className="profile-wrap"><button className="profile-trigger" onClick={() => setProfileOpen(!profileOpen)}><span className="avatar">{session.username.slice(0, 1).toUpperCase()}</span><span className="profile-name">{session.username}</span><ChevronDown size={14} /></button>{profileOpen && <div className="profile-menu"><div className="profile-menu-head">Hesabın <strong>{session.username}</strong></div><button onClick={() => { setProfileOpen(false); scrollTo('my-orders') }}>Siparişlerim <span>{mine.length}</span></button><button className="logout-button" onClick={logout}>Oturumu kapat</button></div>}</div> : <button className="login-button" onClick={() => openAuth('login')}><UserRound size={16} /><span>Giriş yap</span></button>}
-          <button className="mobile-menu-button" aria-label="Menüyü aç" onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X /> : <Menu />}</button>
-        </div>
-      </header>
-      <main id="top">
-        <section className="hero">
-          <div className="hero-art"><img src="/craftsolar-banner.png" alt="Gün batımında CraftSolar Towny dünyası" /><div className="hero-art-shade" /><div className="hero-coordinate">WORLD / 01 <span>39° 55′ 00″ N</span></div><div className="hero-caption">KITA SINIRLARININ ÖTESİNDE</div></div>
-          <div className="hero-content"><div className="eyebrow"><span /> YENİ BİR DÜNYA, SENİN HİKÂYEN</div><h1>Kendi kasabanı kur.<br /><span>Güneşin altındaki</span><br />yerini al.</h1><p>Kıtalar çiz, ulusunu büyüt, gerçek dünyada hüküm sür. CraftSolar’da haritanın bir köşesi senin adını bekliyor.</p><div className="hero-buttons"><button className="button button-gold" onClick={() => scrollTo('store')}>Dünyaya adım at <ArrowRight size={17} /></button><button className="button button-outline" onClick={copyIp}><Copy size={16} />{copied ? 'Kopyalandı' : IP}</button></div><div className="hero-footnote"><span className="pulse-dot" />TOWNY SUNUCUSU <i /> TÜM SÜRÜMLER UYGUN</div></div>
-          <div className="hero-side-note"><span>CS / 01</span><i />SINIRLARINI ÇİZ</div>
-          <a className="scroll-cue" href="#world" aria-label="Aşağı kaydır"><ArrowDown size={15} /></a>
-        </section>
-        <section className="world-strip" id="world"><div className="strip-intro"><span className="section-index">01 / DÜNYA</span><h2>Harita büyük.<br /><em>Hikâye senin.</em></h2><p>Bir kasaba ile başlar. Sonrası verdiğin kararlar.</p><a className="text-link" href={DISCORD} target="_blank" rel="noreferrer">Topluluğa katıl <ArrowUpRight size={15} /></a></div><div className="feature-list">{features.map(({ no, title, name, text, icon: Icon, className }) => <article className={`feature-row ${className}`} key={no}><span className="feature-no">{no}</span><div className="feature-copy"><h3>{name}</h3><p>{text}</p></div><span className="feature-stamp">{title}</span><Icon className="feature-icon" size={24} strokeWidth={1.5} /></article>)}</div><div className="map-coordinate">TOWNY ATLAS <span>CS–WORLD / 01</span></div></section>
-        <section className="store-section" id="store"><div className="store-heading"><div><span className="section-index">02 / PAZAR YERİ</span><h2>Kasabana güç kat.</h2><p>Oyun içi teslimat yetkililer tarafından yapılır. Sepete ekle, siparişini oluştur.</p></div><button className="store-cart-button" onClick={() => setCartOpen(true)}><ShoppingBag size={17} /> Sepetim <span>{cartCount}</span></button></div><div className="store-toolbar"><div className="category-tabs">{['Tümü', 'Rütbeler', 'Silahlar', 'Setler'].map(category => <button key={category} className={activeCategory === category ? 'category-tab active' : 'category-tab'} onClick={() => setActiveCategory(category)}>{category}</button>)}</div><label className="store-search"><span>ARA</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Ürün bul" /><ChevronDown size={14} /></label></div><div className="product-grid">{filtered.map(product => <ProductCard key={product.id} product={product} onSelect={() => setSelected(product)} onAdd={() => addToCart(product.id)} />)}</div><div className="delivery-note"><span className="delivery-icon"><Truck size={20} /></span><div><strong>Oyun içi teslimat</strong><p>{DELIVERY}</p></div><CircleHelp size={17} className="help-icon" /></div></section>
-        {session && <section className="orders-section" id="my-orders"><div className="orders-heading"><div><span className="section-index">03 / HESABIM</span><h2>Siparişlerin</h2></div><span className="orders-count">{mine.length} SİPARİŞ</span></div>{mine.length ? <div className="my-orders">{mine.map(order => <OrderRow key={order.id} order={order} />)}</div> : <div className="empty-orders">Henüz siparişin yok. İlk adım mağazada.</div>}</section>}
-        <section className="join-section" id="about"><div className="join-grid" /><div className="join-copy"><span className="section-index">04 / BULUŞMA NOKTASI</span><h2>Yeni bir kıta.<br /><em>Tanıdık bir blok.</em></h2><p>Kasabanı kuracağın yer hazır. Şimdi sıra sende.</p><a className="button button-gold" href={DISCORD} target="_blank" rel="noreferrer">Discord’da buluşalım <ArrowUpRight size={17} /></a></div><div className="join-server"><span className="server-label"><span className="live-dot" /> SUNUCU ADRESİ</span><button onClick={copyIp}>{IP}<Copy size={15} /></button><span className="server-version">JAVA EDITION <i /> 1.16.5 — 1.21+</span></div></section>
-      </main>
-      <footer className="site-footer"><a className="footer-brand" href="#top">CRAFT<span>SOLAR</span></a><span>Bir kasaba kur. Bir kıta değiştir.</span><span className="footer-year">© 2026 CRAFTSOLAR TOWNY</span></footer>
-    </>}
-
-    {cartOpen && <><button className="scrim" aria-label="Sepeti kapat" onClick={() => setCartOpen(false)} /><aside className="cart-drawer"><div className="drawer-head"><div><span className="section-index">PAZAR YERİ</span><h2>Sepetim <small>({cartCount})</small></h2></div><button className="close-button" aria-label="Kapat" onClick={() => setCartOpen(false)}><X /></button></div>{cart.length ? <><div className="cart-lines">{cart.map(line => { const item = products.find(product => product.id === line.id); return <div className="cart-line" key={line.id}><div className={`cart-thumb ${item.art}`}><item.icon size={22} /></div><div className="cart-line-info"><strong>{item.name}</strong><span>{money(item.price)} / adet</span><div className="quantity-control"><button aria-label="Azalt" onClick={() => changeQuantity(line.id, -1)}><Minus size={13} /></button><span>{line.quantity}</span><button aria-label="Artır" onClick={() => changeQuantity(line.id, 1)}><Plus size={13} /></button></div></div><div className="cart-line-total"><strong>{money(item.price * line.quantity)}</strong><button aria-label="Ürünü kaldır" onClick={() => setCart(current => current.filter(row => row.id !== line.id))}><Trash2 size={14} /></button></div></div> })}</div><div className="drawer-bottom"><p className="demo-payment-note"><LockKeyhole size={15} /> Bu bir demo sipariştir. Gerçek ödeme alınmaz.</p><div className="cart-total"><span>Toplam</span><strong>{money(total)}</strong></div><button className="button button-gold checkout-button" onClick={checkout} disabled={busy}>{busy ? <><span className="spinner" /> Sipariş hazırlanıyor</> : <>Satın alımı tamamla <ArrowRight size={17} /></>}</button><p className="drawer-delivery">{DELIVERY}</p></div></> : <div className="cart-empty"><span><ShoppingBag size={28} /></span><h3>Sepetin şimdilik boş.</h3><p>Kasaban için bir şeyler seçmeye ne dersin?</p><button className="button button-outline" onClick={() => { setCartOpen(false); scrollTo('store') }}>Mağazaya göz at <ArrowRight size={16} /></button></div>}</aside></>}
-    {selected && <div className="modal-backdrop" onMouseDown={event => event.target === event.currentTarget && setSelected(null)}><section className="product-modal" role="dialog" aria-modal="true"><button className="close-button modal-close" aria-label="Kapat" onClick={() => setSelected(null)}><X /></button><div className={`modal-art ${selected.art}`}><div className="modal-art-mark"><selected.icon size={46} strokeWidth={1.35} /></div><span>{selected.category.toUpperCase()} / CRAFTSOLAR</span></div><div className="modal-content"><span className="item-tag">{selected.tag}</span><h2>{selected.name}</h2><p>{selected.description}</p><ul>{selected.perks.map(perk => <li key={perk}><Check size={15} />{perk}</li>)}</ul><div className="modal-buy"><strong>{money(selected.price)}</strong><button className="button button-gold" onClick={() => addToCart(selected.id)}>Sepete ekle <ShoppingCart size={16} /></button></div><span className="modal-delivery"><Truck size={15} /> {DELIVERY}</span></div></section></div>}
-    {authOpen && <div className="modal-backdrop" onMouseDown={event => event.target === event.currentTarget && setAuthOpen(false)}><section className="auth-modal" role="dialog" aria-modal="true"><button className="close-button modal-close" aria-label="Kapat" onClick={() => setAuthOpen(false)}><X /></button><div className="auth-emblem"><img src="/craftsolar-emblem.png" alt="CraftSolar" /></div><span className="section-index">CRAFTSOLAR / HESAP</span><h2>{authMode === 'register' ? 'Dünyada yerini al.' : 'Tekrar hoş geldin.'}</h2><p className="auth-intro">{authMode === 'register' ? 'Kasabanı oluşturmak için hesabını aç.' : 'Siparişlerini görmek için giriş yap.'}</p><div className="username-notice"><strong><UserRound size={15} /> Minecraft nicki zorunludur</strong><p>Kullanıcı adın oyun içi Minecraft nickinle <b>birebir aynı</b> olmalı. Teslimatlar bu isme yapılır.</p></div><form onSubmit={submitAuth}><label>MINECRAFT NICK<input autoComplete="username" value={form.username} onChange={event => setForm({ ...form, username: event.target.value })} placeholder="Örn. Kasabakurucu_7" maxLength={16} required /></label><label>ŞİFRE<input type="password" autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} value={form.password} onChange={event => setForm({ ...form, password: event.target.value })} placeholder="En az 4 karakter" minLength={4} required /></label>{authError && <p className="form-error">{authError}</p>}<button className="button button-gold auth-submit" type="submit">{authMode === 'register' ? 'Hesap oluştur' : 'Giriş yap'} <ArrowRight size={16} /></button></form><p className="auth-switch">{authMode === 'register' ? 'Zaten hesabın var mı?' : 'CraftSolar’da yeni misin?'} <button onClick={() => { setAuthMode(authMode === 'register' ? 'login' : 'register'); setAuthError('') }}>{authMode === 'register' ? 'Giriş yap' : 'Hesap oluştur'}</button></p><p className="local-data-note"><LockKeyhole size={13} /> Demo hesap bilgileri bu tarayıcıda saklanır.</p></section></div>}
-    {notice && <div className="modal-backdrop success-backdrop"><section className="success-modal" role="dialog" aria-modal="true"><button className="close-button modal-close" aria-label="Kapat" onClick={() => setNotice(null)}><X /></button><div className="success-icon"><PackageCheck size={32} /></div><span className="section-index">SİPARİŞ / {notice.id}</span><h2>Siparişin alındı.</h2><p>Teşekkürler, <strong>{notice.username}</strong>. Siparişin oluşturuldu. Gerçek bir ödeme alınmadı.</p><div className="success-total"><span>SİPARİŞ TUTARI</span><strong>{money(notice.total)}</strong></div><p className="success-delivery">{DELIVERY}</p><button className="button button-gold auth-submit" onClick={() => { setNotice(null); scrollTo('my-orders') }}>Siparişlerime git <ArrowRight size={16} /></button></section></div>}
-    {toast && <div className="toast"><span><Check size={14} /></span>{toast}</div>}
+    <Hero eyebrow="BİR KASABA İLE BAŞLAR" title={<>Kasabanı kur.<br /><em>Kıtada yerini al.</em></>} text="Gerçek dünya haritasında ulusunu büyüt, güneşin altındaki yerini al." copyIp={copyIp} copied={copied} />
+    <div className="server-ribbon"><div><span className="ribbon-mark"><Globe2 size={19} /></span><span><small>OYUN MODU</small><b>Towny</b></span></div><i /><div><span className="ribbon-mark"><Zap size={19} /></span><span><small>SÜRÜM</small><b>Tüm sürümler uygun</b></span></div><i /><button onClick={copyIp}><span className="ribbon-mark"><Copy size={18} /></span><span><small>{copied ? 'KOPYALANDI' : 'SUNUCU ADRESİ'}</small><b>{IP}</b></span><ArrowUpRight size={16} /></button></div>
+    <section className="home-world"><div className="section-picture"><img src="/craftsolar-emblem.png" alt="CraftSolar güneş amblemi" width="2048" height="2048" /><span className="picture-caption">HARİTA / 01</span></div><div className="home-world-copy"><span className="section-label">01 — DÜNYA</span><h2>Haritanın her köşesi<br />yeni bir başlangıç.</h2><p>Towny’de sınırları sen çizersin. Kasabanı kur, komşularınla ticaret yap ve diplomasiyle ulusunu büyüt.</p><div className="mini-features"><div><Globe2 /><span><b>Gerçek dünya haritası</b><small>Stratejik bölgeler, ticaret yolları</small></span></div><div><Swords /><span><b>Kuşatma ve diplomasi</b><small>İttifak, savaş veya barış</small></span></div></div><a href="#/towny" className="inline-link" onClick={event => { event.preventDefault(); navigate('towny') }}>Towny dünyasını tanı <ArrowRight size={15} /></a></div></section>
+    <section className="home-shop"><div className="section-heading"><div><span className="section-label">02 — PAZAR YERİ</span><h2>Kasabana küçük bir destek.</h2></div><button className="inline-link" onClick={() => navigate('magaza')}>Tüm ürünler <ArrowRight size={15} /></button></div><div className="featured-grid">{products.slice(0, 4).map(item => <ProductCard key={item.id} product={item} onSelect={() => openProduct(item)} onAdd={() => addToCart(item.id)} />)}</div><p className="delivery-line"><Truck size={16} /> {DELIVERY}</p></section>
+    <section className="home-bottom"><div><span className="section-label">03 — TOPLULUK</span><h2>Kasaban seni bekliyor.</h2><p>Kurallar, rehber ve oyuncularla tanışmak için Discord’a katıl.</p></div><a className="button button-dark" href={DISCORD} target="_blank" rel="noreferrer">Discord’a katıl <ArrowUpRight size={16} /></a><a href="#/hesabim" className="sr-only" onClick={event => { event.preventDefault(); navigate('hesabim') }}>Hesabım</a>{orders.length > 0 && <span className="home-order-note">Bu tarayıcıda {orders.length} demo sipariş kaydı var.</span>}</section>
   </>
+}
+
+function PageBanner({ number, eyebrow, title, text, children }) {
+  return <section className="page-banner"><div className="page-banner-image" /><div className="page-banner-copy"><span className="section-label">{number} — {eyebrow}</span><h1>{title}</h1><p>{text}</p>{children}</div><span className="banner-code">CRAFTSOLAR / {number}</span></section>
+}
+
+function TownyPage({ navigate, copyIp }) {
+  return <><PageBanner number="01" eyebrow="TOWNY DÜNYASI" title={<>Bir harita.<br /><em>Sınırsız ihtimal.</em></>} text="CraftSolar yalnızca Towny. Gerçek dünya haritasında kasabanı kur, kendi hikâyeni yaz." /><section className="towny-intro"><div className="towny-poster"><img src="/craftsolar-banner.png" alt="CraftSolar Towny dünyasının gün batımı manzarası" width="1672" height="836" /><span>GÜNEŞİN ALTINDAKİ YERİNİ AL</span></div><div className="towny-text"><span className="section-label">BİR DÜNYA, ORTAK HİKÂYELER</span><h2>Gelişmek için<br />birlikte oyna.</h2><p>Kasaba hayatı kaynak toplamaktan fazlası. Komşularınla anlaş, ticaretini büyüt ve kıtanın geleceğinde söz sahibi ol.</p><button className="button button-orange" onClick={copyIp}>Sunucuya bağlan <Copy size={15} /></button></div></section><section className="feature-section"><div className="section-heading"><div><span className="section-label">CRAFTSOLAR’DA</span><h2>Oyunun kendi ritmi.</h2></div><p>Kur, üret, pazarlık et. Dünya senin kararlarınla şekillenir.</p></div><div className="feature-grid">{featureItems.map((item, index) => { const Icon = item.icon; return <article className={`feature-card feature-${index + 1}`} key={item.title}><span className="feature-index">0{index + 1}</span><Icon size={25} /><h3>{item.title}</h3><p>{item.text}</p></article> })}</div></section><Callout navigate={navigate} /></>
+}
+
+function GuidePage({ navigate, copyIp }) {
+  const steps = [
+    { no: '01', title: 'Sunucuya bağlan', text: 'Minecraft Java Edition’ı aç. Sunucu listesine CraftSolar adresini ekle.', icon: Copy, action: true },
+    { no: '02', title: 'Dünyayı tanı', text: 'Başlangıç alanında çevreni keşfet ve kasaban için uygun bir yer belirle.', icon: Globe2 },
+    { no: '03', title: 'Kasabanı büyüt', text: 'Diğer oyuncularla tanış, kaynaklarını değerlendir ve kasabanın çevresini genişlet.', icon: Hammer },
+    { no: '04', title: 'Kıtada söz sahibi ol', text: 'Ticaret, diplomasi ve etkinliklerle ulusunun hikâyesini yaz.', icon: Crown }
+  ]
+  return <><PageBanner number="02" eyebrow="BAŞLANGIÇ REHBERİ" title={<>İlk günün.<br /><em>İlk kasaban.</em></>} text="CraftSolar’a katılmak kolay. Dört adımda Towny macerana başla." /><section className="guide-section"><div className="guide-track">{steps.map(step => { const Icon = step.icon; return <article className="guide-step" key={step.no}><span className="guide-number">{step.no}</span><div className="guide-icon"><Icon size={21} /></div><div><h2>{step.title}</h2><p>{step.text}</p>{step.action && <button className="inline-link" onClick={copyIp}>IP adresini kopyala <Copy size={14} /></button>}</div></article> })}</div><aside className="guide-aside"><img src="/craftsolar-emblem.png" alt="CraftSolar" width="2048" height="2048" /><span className="section-label">SUNUCU BİLGİSİ</span><h2>Java Edition<br />Tüm sürümler uygun</h2><button className="button button-orange" onClick={copyIp}>CraftSolar’a bağlan <ArrowRight size={15} /></button><p>Soru mu var? Topluluğa katıl, oyunculara danış.</p><a href={DISCORD} target="_blank" rel="noreferrer" className="inline-link">Discord desteği <ArrowUpRight size={15} /></a></aside></section><Callout navigate={navigate} /></>
+}
+
+function StorePage({ category, setCategory, search, setSearch, products: visibleProducts, addToCart, openProduct, cartCount, openCart }) {
+  return <><PageBanner number="03" eyebrow="CRAFTSOLAR MAĞAZA" title={<>Kasabanın<br /><em>ihtiyaçları.</em></>} text="Rütbeler, özel kılıçlar ve netherite setler. Her ürün, yetkililer tarafından oyun içinde teslim edilir."><button className="button button-orange" onClick={openCart}><ShoppingCart size={16} /> Sepetim ({cartCount})</button></PageBanner><section className="store-page"><div className="store-controls"><div className="category-list" aria-label="Ürün kategorisi">{['Tümü', 'Rütbeler', 'Silahlar', 'Setler'].map(item => <button key={item} className={category === item ? 'category-button category-active' : 'category-button'} aria-pressed={category === item} onClick={() => setCategory(item)}>{item}</button>)}</div><label className="search-box"><span>ÜRÜN ARA</span><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Örn. SOLAR" /></label></div>{visibleProducts.length ? <div className="store-grid">{visibleProducts.map(item => <ProductCard key={item.id} product={item} onSelect={() => openProduct(item)} onAdd={() => addToCart(item.id)} />)}</div> : <div className="empty-state"><ShoppingBag size={27} /><h2>Bu aramada ürün yok.</h2><p>Başka bir ürün adı dene veya kategori filtresini kaldır.</p></div>}<div className="store-delivery"><Truck size={22} /><div><b>Oyun içi teslimat</b><p>{DELIVERY}</p></div></div><p className="demo-note">Bu mağaza şu anda önizleme modunda. Siparişler simüle edilir ve ödeme alınmaz.</p></section></>
+}
+
+function HelpPage({ navigate }) {
+  const questions = [
+    ['CraftSolar hangi oyun modunda?', 'CraftSolar yalnızca Towny sunucusudur.'],
+    ['Sunucuya hangi sürümle girebilirim?', 'Tüm sürümler uygun olarak sunulmuştur. Java Edition kullan.'],
+    ['Satın aldığım ürün nasıl teslim edilir?', 'Siparişler demo olarak kaydedilir. Gerçek siparişlerde eşyalar ve rütbeler oyun içi yetkililer tarafından teslim edilir.'],
+    ['Site üzerinden gerçek ödeme alınıyor mu?', 'Hayır. Bu site önizleme sürümüdür. Satın alma akışı çalışıyor gibi görünür, ancak gerçek ödeme alınmaz.'],
+    ['Minecraft kullanıcı adım önemli mi?', 'Evet. Hesap açarken kullandığın ad, Minecraft nickinle birebir aynı olmalı. Teslimatlar bu isme yapılır.']
+  ]
+  const [open, setOpen] = useState(0)
+  return <><PageBanner number="04" eyebrow="YARDIM MERKEZİ" title={<>Aklındaki<br /><em>sorular.</em></>} text="Başlamadan önce en çok merak edilenler. Daha fazla yardım için Discord’dayız." /><section className="faq-section"><div className="faq-list">{questions.map(([question, answer], index) => <article className={open === index ? 'faq-item faq-open' : 'faq-item'} key={question}><button aria-expanded={open === index} onClick={() => setOpen(open === index ? -1 : index)}><span>{question}</span><Plus size={17} /></button>{open === index && <p>{answer}</p>}</article>)}</div><aside className="support-card"><span className="support-icon"><HeartHandshake size={25} /></span><span className="section-label">TOPLULUK DESTEĞİ</span><h2>Bir oyuncuya<br />danış.</h2><p>Towny, kasaban veya sunucu hakkında sohbet etmek için Discord’a gel.</p><a className="button button-orange" href={DISCORD} target="_blank" rel="noreferrer">Discord’a katıl <ArrowUpRight size={16} /></a><button className="text-button" onClick={() => navigate('rehber')}>Başlangıç rehberi <ArrowRight size={14} /></button></aside></section></>
+}
+
+function AccountPage({ session, orders, openAuth, navigate, logout }) {
+  if (!session) return <section className="account-empty"><UserRound size={32} /><span className="section-label">CRAFTSOLAR HESABIN</span><h1>Önce giriş yap.</h1><p>Sipariş geçmişini görmek için demo hesabına giriş yap veya yeni hesap oluştur.</p><div><button className="button button-orange" onClick={() => openAuth('login')}>Giriş yap</button><button className="button button-outline" onClick={() => openAuth('register')}>Hesap oluştur</button></div></section>
+  return <><PageBanner number="05" eyebrow="HESABIM" title={<>Selam,<br /><em>{session.username}.</em></>} text="Bu tarayıcıdaki siparişlerini ve teslimat durumlarını buradan takip edebilirsin."><button className="button button-outline" onClick={logout}>Oturumu kapat</button></PageBanner><section className="account-orders"><div className="section-heading"><div><span className="section-label">SİPARİŞ GEÇMİŞİ</span><h2>Siparişlerin</h2></div><span className="order-total-count">{orders.length} SİPARİŞ</span></div>{orders.length ? orders.map(order => <OrderCard key={order.id} order={order} />) : <div className="empty-state"><PackageCheck size={28} /><h2>Henüz sipariş yok.</h2><p>Mağazaya göz at, kasaban için bir parça seç.</p><button className="button button-orange" onClick={() => navigate('magaza')}>Mağazaya git <ArrowRight size={15} /></button></div>}</section></>
 }
 
 function ProductCard({ product, onSelect, onAdd }) {
   const Icon = product.icon
-  return <article className="product-card"><button className={`product-art ${product.art}`} onClick={onSelect} aria-label={`${product.name} detayları`}><span className="product-art-tag">{product.tag}</span><span className="product-art-number">CS / {product.id.toUpperCase()}</span><span className="product-glyph"><Icon size={43} strokeWidth={1.25} /></span><span className="art-orbit orbit-one" /><span className="art-orbit orbit-two" /><span className="art-ground" /><span className="art-coord">X / 0{product.price}</span></button><div className="product-info"><div><span className="product-category">{product.category}</span><button className="product-name" onClick={onSelect}>{product.name}</button></div><button className="product-detail" aria-label={`${product.name} detayları`} onClick={onSelect}><ArrowUpRight size={16} /></button></div><div className="product-buy-row"><strong>{money(product.price)}</strong><button onClick={onAdd}><Plus size={15} /> Ekle</button></div></article>
+  return <article className="product-card"><button className={`product-art tone-${product.tone}`} onClick={onSelect} aria-label={`${product.name} detayları`}><span className="product-label">{product.label}</span><span className="product-code">CS / {product.id.toUpperCase()}</span><span className="product-icon"><Icon size={40} strokeWidth={1.5} /></span><span className="product-art-base" /><span className="art-coordinate">CRAFTSOLAR GOODS</span></button><div className="product-meta"><div><small>{product.category}</small><button className="product-title" onClick={onSelect}>{product.name}</button></div><strong>{price(product.price)}</strong></div><div className="product-actions"><button onClick={onSelect}>Detaylar <ArrowRight size={14} /></button><button onClick={onAdd} aria-label={`${product.name} ürününü sepete ekle`}><Plus size={16} /><span>Sepete ekle</span></button></div></article>
 }
 
-function OrderRow({ order }) {
-  const date = new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(order.createdAt))
-  const nameList = order.items.map(line => `${products.find(item => item.id === line.id)?.name} ×${line.quantity}`).join(', ')
-  return <article className="order-row"><span className="order-symbol"><PackageCheck size={18} /></span><div className="order-main"><strong>{nameList}</strong><span>{order.id} · {date}</span></div><strong className="order-price">{money(order.total)}</strong><span className={order.status === 'Teslim Edildi' ? 'order-status delivered' : 'order-status'}>{order.status}</span></article>
+function ProductDialog({ product, close, add }) {
+  const Icon = product.icon
+  return <div className="dialog-backdrop" onMouseDown={event => event.target === event.currentTarget && close()}><section className="product-dialog" role="dialog" aria-modal="true" aria-labelledby="product-dialog-title"><button className="close-icon dialog-close" aria-label="Pencereyi kapat" onClick={close}><X /></button><div className={`dialog-art tone-${product.tone}`}><Icon size={52} /><span>{product.category} / CRAFTSOLAR</span></div><div className="dialog-copy"><span className="section-label">{product.label}</span><h2 id="product-dialog-title">{product.name}</h2><p>{product.description}</p><div className="dialog-delivery"><Truck size={17} />{DELIVERY}</div><div className="dialog-buy"><strong>{price(product.price)}</strong><button className="button button-orange" onClick={add}>Sepete ekle <Plus size={16} /></button></div><small>Demo sipariştir. Gerçek ödeme alınmaz.</small></div></section></div>
 }
 
-function AdminView({ users, orders, setOrderStatus }) {
-  const [filter, setFilter] = useState('')
-  const [access, setAccess] = useState(sessionStorage.getItem('craftsolar-admin') === 'yes')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+function AuthDialog({ mode, setMode, form, setForm, error, submit, close }) {
+  return <div className="dialog-backdrop" onMouseDown={event => event.target === event.currentTarget && close()}><section className="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title"><button className="close-icon dialog-close" aria-label="Pencereyi kapat" onClick={close}><X /></button><img src="/craftsolar-emblem.png" alt="" width="2048" height="2048" /><span className="section-label">CRAFTSOLAR / HESAP</span><h2 id="auth-title">{mode === 'register' ? 'Dünyada yerini al.' : 'Tekrar hoş geldin.'}</h2><p>{mode === 'register' ? 'Siparişlerini takip etmek için demo hesabını oluştur.' : 'Siparişlerini görmek için giriş yap.'}</p><div className="nick-reminder"><b><UserRound size={15} /> Minecraft nicki ile kayıt ol</b><span>Kullanıcı adın oyun içi nickinle birebir aynı olmalı. Teslimatlar bu isme yapılır.</span></div><form onSubmit={submit}><label>MINECRAFT NICK<input autoComplete="username" maxLength={16} required value={form.username} onChange={event => setForm({ ...form, username: event.target.value })} placeholder="Oyundaki kullanıcı adın" /></label><label>ŞİFRE<input autoComplete={mode === 'register' ? 'new-password' : 'current-password'} type="password" minLength={4} required value={form.password} onChange={event => setForm({ ...form, password: event.target.value })} placeholder="En az 4 karakter" /></label>{error && <span className="form-error" role="alert">{error}</span>}<button className="button button-orange full-button">{mode === 'register' ? 'Hesap oluştur' : 'Giriş yap'} <ArrowRight size={16} /></button></form><div className="auth-switch">{mode === 'register' ? 'Zaten hesabın var mı?' : 'CraftSolar’da yeni misin?'} <button onClick={() => setMode(mode === 'register' ? 'login' : 'register')}>{mode === 'register' ? 'Giriş yap' : 'Hesap oluştur'}</button></div><small className="local-note">Demo bilgileri yalnızca bu tarayıcıda saklanır.</small></section></div>
+}
+
+function SuccessDialog({ order, close, goOrders }) {
+  return <div className="dialog-backdrop"><section className="success-dialog" role="dialog" aria-modal="true"><button className="close-icon dialog-close" aria-label="Pencereyi kapat" onClick={close}><X /></button><div className="success-symbol"><PackageCheck size={30} /></div><span className="section-label">SİPARİŞ / {order.id}</span><h2>Siparişin alındı.</h2><p>{order.username}, siparişin demo olarak oluşturuldu. Gerçek ödeme alınmadı.</p><div className="success-total"><span>SİPARİŞ TUTARI</span><b>{price(order.total)}</b></div><p className="success-delivery">{DELIVERY}</p><button className="button button-orange full-button" onClick={goOrders}>Siparişlerime git <ArrowRight size={16} /></button></section></div>
+}
+
+function OrderCard({ order }) {
+  return <article className="account-order"><div className="account-order-icon"><PackageCheck size={18} /></div><div className="account-order-data"><b>{order.items.map(line => `${products.find(item => item.id === line.id)?.name} ×${line.quantity}`).join(', ')}</b><span>{order.id} · {dateText(order.createdAt)}</span></div><strong>{price(order.total)}</strong><span className={order.status === 'Teslim Edildi' ? 'status status-done' : 'status'}>{order.status}</span></article>
+}
+
+function Callout({ navigate }) {
+  return <section className="callout"><img src="/craftsolar-emblem.png" alt="" width="2048" height="2048" /><div><span className="section-label">SENİ BEKLİYORUZ</span><h2>Güneşin altında yerini al.</h2><p>Sunucuya katıl, kendi Towny hikâyeni başlat.</p></div><button className="button button-orange" onClick={() => navigate('rehber')}>Nasıl katılırım? <ArrowRight size={15} /></button></section>
+}
+
+function NotFound({ navigate }) {
+  return <section className="account-empty"><span className="section-label">404 / HARİTA DIŞI</span><h1>Bu sayfa burada yok.</h1><p>Yolunu kaybettiysen ana meydana dön.</p><button className="button button-orange" onClick={() => navigate('home')}>Anasayfaya dön</button></section>
+}
+
+function Footer({ navigate }) {
+  return <footer className="footer"><div className="footer-main"><a href="#/home" className="footer-brand"><img src="/craftsolar-emblem.png" alt="" width="2048" height="2048" /><span>CRAFT<span>SOLAR</span><small>GERÇEK TOWNY DENEYİMİ</small></span></a><p>Kendi kasabanı kur, ulusunu büyüt ve kıtanın tek hâkimi ol.</p><a className="footer-discord" href={DISCORD} target="_blank" rel="noreferrer">Discord’a katıl <ArrowUpRight size={15} /></a></div><div className="footer-links"><span>CRAFTSOLAR TOWNY</span><button onClick={() => navigate('towny')}>Towny dünyası</button><button onClick={() => navigate('rehber')}>Başlangıç rehberi</button><button onClick={() => navigate('magaza')}>Mağaza</button><button onClick={() => navigate('sss')}>Yardım merkezi</button></div><div className="footer-bottom"><span>© 2026 CRAFTSOLAR TOWNY</span><span>Bağımsız bir Minecraft sunucusudur, Mojang Studios ile bağlantılı değildir.</span></div></footer>
+}
+
+function AdminPage({ users, orders, changeStatus }) {
+  const [query, setQuery] = useState('')
   const turnover = orders.reduce((sum, order) => sum + order.total, 0)
-  if (!access) return <main className="admin-gate"><form className="admin-gate-card" onSubmit={event => { event.preventDefault(); if (password === 'CS-SOLAR-DEMO') { sessionStorage.setItem('craftsolar-admin', 'yes'); setAccess(true) } else setError('Demo yönetici anahtarı hatalı.') }}><img src="/craftsolar-emblem.png" alt="" /><span className="section-index">CRAFTSOLAR / YÖNETİM</span><h1>Yönetim alanı</h1><p>Demo panelini açmak için yönetici anahtarını gir.</p><label>YÖNETİCİ ANAHTARI<input value={password} onChange={event => setPassword(event.target.value)} type="password" autoComplete="current-password" /></label>{error && <p className="form-error">{error}</p>}<button className="button button-gold" type="submit">Panele giriş <ArrowRight size={16} /></button><a href="#top">Ana sayfaya dön</a></form></main>
-  return <main className="admin-page"><header className="admin-top"><a className="brand" href="#top"><span className="brand-mark"><img src="/craftsolar-emblem.png" alt="" /></span><span className="brand-name">CRAFT<span>SOLAR</span><small>YÖNETİM</small></span></a><button className="button button-outline" onClick={() => { sessionStorage.removeItem('craftsolar-admin'); location.hash = '#top'; location.reload() }}>Paneli kapat <X size={15} /></button></header><div className="admin-content"><div className="admin-title"><div><span className="section-index">CRAFTSOLAR / YÖNETİM PANELİ</span><h1>Kontrol merkezi</h1><p>Kayıtlar bu tarayıcının yerel demo verileridir.</p></div><span className="admin-local"><LockKeyhole size={14} /> YEREL DEMO VERİSİ</span></div><div className="admin-stats"><article><span>KAYITLI OYUNCULAR</span><strong>{users.length}</strong><UserRound size={20} /></article><article><span>TOPLAM SİPARİŞ</span><strong>{orders.length}</strong><ShoppingBag size={20} /></article><article><span>SİMÜLE CİRO</span><strong>{money(turnover)}</strong><Landmark size={20} /></article><article><span>TESLİMAT BEKLİYOR</span><strong>{orders.filter(order => order.status === 'Bekliyor').length}</strong><Truck size={20} /></article></div><section className="admin-table-section"><div className="admin-table-head"><div><span className="section-index">İŞLEM KAYITLARI</span><h2>Siparişler</h2></div><input value={filter} onChange={event => setFilter(event.target.value)} placeholder="Oyuncu veya ürün ara" /></div>{orders.length ? <div className="table-scroll"><table><thead><tr><th>SİPARİŞ</th><th>MINECRAFT NICKİ</th><th>ÜRÜNLER</th><th>TUTAR</th><th>TARİH</th><th>DURUM</th><th>TESLİMAT</th></tr></thead><tbody>{orders.filter(order => { const line = order.items.map(item => products.find(product => product.id === item.id)?.name).join(' '); return `${order.username} ${line} ${order.id}`.toLocaleLowerCase('tr').includes(filter.toLocaleLowerCase('tr')) }).map(order => <tr key={order.id}><td className="table-order-id">{order.id}</td><td><strong>{order.username}</strong><small>Minecraft nicki</small></td><td>{order.items.map(line => <span className="table-product" key={line.id}>{products.find(product => product.id === line.id)?.name} <b>×{line.quantity}</b></span>)}</td><td className="table-price">{money(order.total)}</td><td>{new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(order.createdAt))}</td><td><span className={order.status === 'Teslim Edildi' ? 'order-status delivered' : 'order-status'}>{order.status}</span></td><td><button className={order.status === 'Bekliyor' ? 'deliver-button' : 'undo-button'} onClick={() => setOrderStatus(order.id, order.status === 'Bekliyor' ? 'Teslim Edildi' : 'Bekliyor')}>{order.status === 'Bekliyor' ? <><Check size={14} /> Teslim edildi</> : <><ChevronLeft size={14} /> Geri al</>}</button></td></tr>)}</tbody></table></div> : <div className="admin-empty"><PackageCheck size={24} /><h3>Henüz sipariş yok.</h3><p>Demo siparişler bu cihazda oluşturuldukça burada görünür.</p></div>}</section><section className="admin-users"><div><span className="section-index">OYUNCU KAYITLARI</span><h2>Kayıtlı oyuncular <small>{users.length}</small></h2></div>{users.length ? <div className="user-chips">{users.map(user => <span key={user.username}><i>{user.username.slice(0, 1).toUpperCase()}</i>{user.username}<small>{new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium' }).format(new Date(user.createdAt))}</small></span>)}</div> : <p>Henüz kayıtlı oyuncu yok.</p>}</section></div></main>
+  return <main className="admin-page"><header className="admin-header"><a href="#/home" className="footer-brand"><img src="/craftsolar-emblem.png" alt="" width="2048" height="2048" /><span>CRAFT<span>SOLAR</span><small>YÖNETİM</small></span></a><button className="button button-outline" onClick={() => { location.hash = '/home' }}>Paneli kapat <X size={15} /></button></header><div className="admin-content"><div className="section-label">CRAFTSOLAR / YÖNETİM PANELİ</div><h1>Sipariş kontrolü</h1><p>Bu panel yalnızca bu tarayıcıdaki demo kayıtlarını gösterir.</p><div className="admin-metrics"><article><span>KULLANICI</span><b>{users.length}</b></article><article><span>SİPARİŞ</span><b>{orders.length}</b></article><article><span>SİMÜLE CİRO</span><b>{price(turnover)}</b></article><article><span>BEKLEYEN</span><b>{orders.filter(order => order.status === 'Bekliyor').length}</b></article></div><section className="admin-orders"><div><h2>Siparişler</h2><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Oyuncu veya ürün ara" /></div>{orders.length ? orders.filter(order => `${order.username} ${order.items.map(line => products.find(item => item.id === line.id)?.name).join(' ')}`.toLocaleLowerCase('tr').includes(query.toLocaleLowerCase('tr'))).map(order => <article className="admin-order" key={order.id}><span>{order.id}</span><b>{order.username}</b><div>{order.items.map(line => <small key={line.id}>{products.find(item => item.id === line.id)?.name} ×{line.quantity}</small>)}</div><strong>{price(order.total)}</strong><span className="status">{order.status}</span><button className="button button-outline" onClick={() => changeStatus(order.id, order.status === 'Bekliyor' ? 'Teslim Edildi' : 'Bekliyor')}>{order.status === 'Bekliyor' ? 'Teslim edildi' : 'Geri al'}</button></article>) : <p className="empty-admin">Henüz demo sipariş yok.</p>}</section><section className="admin-users"><h2>Kayıtlı kullanıcılar ({users.length})</h2>{users.length ? users.map(user => <span key={user.username}>{user.username} · {new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium' }).format(new Date(user.createdAt))}</span>) : <p>Henüz kullanıcı yok.</p>}</section></div></main>
 }
 
 createRoot(document.getElementById('root')).render(<App />)
