@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { getRecord, putRecord } from './lib/data.mjs'
+import { getRecord, listRecords, putRecord } from './lib/data.mjs'
 import { json, methodNotAllowed, readJson } from './lib/http.mjs'
 import { clearSessionCookie, createSession, hashPassword, readSession, sessionConfigError, sessionCookie, verifyPassword } from './lib/session.mjs'
 
@@ -8,7 +8,15 @@ const namePattern = /^[A-Za-z0-9_]{3,16}$/
 export default async request => {
   if (request.method === 'GET') {
     const session = readSession(request)
-    return json({ user: session ? { username: session.username, role: session.role } : null })
+    const settings = await getRecord('settings', 'site')
+    if (session?.role === 'user') {
+      const account = await getRecord('accounts', session.username.toLowerCase())
+      if (!account || account.deletedAt) return json({ user: null, announcement: settings?.announcement || null })
+      if (account.ban && (!account.ban.until || new Date(account.ban.until).getTime() > Date.now())) return json({ user: null, ban: account.ban, announcement: settings?.announcement || null, welcomeNotice: settings?.welcomeNotice || '' })
+      const personalNotice = account.notice && (!account.notice.until || new Date(account.notice.until).getTime() > Date.now()) ? account.notice : null
+      return json({ user: { username: session.username, role: session.role }, announcement: settings?.announcement || null, notice: personalNotice, welcomeNotice: settings?.welcomeNotice || '' })
+    }
+    return json({ user: session ? { username: session.username, role: session.role } : null, announcement: settings?.announcement || null, welcomeNotice: settings?.welcomeNotice || '' })
   }
 
   if (request.method !== 'POST') return methodNotAllowed('GET, POST')
@@ -37,6 +45,7 @@ export default async request => {
     const result = await putRecord('accounts', accountKey, account, { onlyIfNew: true })
     if (!result.modified) return json({ error: 'Bu Minecraft nickiyle bir hesap zaten var.' }, 409)
   } else if (action === 'login') {
+    if (account?.ban && (!account.ban.until || new Date(account.ban.until).getTime() > Date.now())) return json({ error: `Hesabın yönetim tarafından engellendi. Gerekçe: ${account.ban.reason}${account.ban.until ? ` · Bitiş: ${new Date(account.ban.until).toLocaleString('tr-TR')}` : ''}` }, 403)
     if (!account || !(await verifyPassword(password, account))) return json({ error: 'Minecraft nicki veya şifre hatalı.' }, 401)
   } else {
     return json({ error: 'Desteklenmeyen hesap işlemi.' }, 400)

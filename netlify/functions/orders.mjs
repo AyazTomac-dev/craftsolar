@@ -1,12 +1,13 @@
 import { randomUUID } from 'node:crypto'
 import { listRecords, putRecord } from './lib/data.mjs'
 import { json, methodNotAllowed, readJson } from './lib/http.mjs'
-import { readSession } from './lib/session.mjs'
+import { resolveSession } from './lib/session.mjs'
 
 const productIds = new Set(['vip', 'solar', 'solar-plus', 'spider', 'weakness', 'lightning', 'prot5', 'prot6'])
 
 export default async request => {
-  const session = readSession(request)
+  const session = await resolveSession(request)
+  if (session?.role === 'banned') return json({ error: `Hesabın kısıtlandı. Gerekçe: ${session.ban.reason}` }, 403)
   if (!session) return json({ error: 'Siparişlerini görmek için hesabına giriş yap.' }, 401)
   if (request.method === 'GET') {
     const orders = await listRecords('orders')

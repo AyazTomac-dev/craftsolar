@@ -1,5 +1,5 @@
-import { listRecords, getRecord, putRecord } from './lib/data.mjs'
-import { json, methodNotAllowed, readJson } from './lib/http.mjs'
+import { listRecords, getRecord, putRecord, deleteRecord } from './lib/data.mjs'
+import { cleanText, json, methodNotAllowed, readJson } from './lib/http.mjs'
 import { createSession, readSession, sessionConfigError, sessionCookie, verifyAdminPassword } from './lib/session.mjs'
 
 const statuses = {
@@ -27,24 +27,72 @@ export default async request => {
   if (session?.role !== 'admin') return json({ error: 'Yönetim oturumu gerekiyor.' }, 401)
 
   if (request.method === 'GET') {
-    const [accounts, applications, support, orders] = await Promise.all([
+    const [accounts, applications, support, orders, settings] = await Promise.all([
       listRecords('accounts'),
       listRecords('applications'),
       listRecords('support'),
-      listRecords('orders')
+      listRecords('orders'),
+      getRecord('settings', 'site')
     ])
     return json({
-      users: accounts.map(({ username, createdAt }) => ({ username, createdAt })),
+      users: accounts.map(({ username, createdAt, ban, notice }) => ({ username, createdAt, ban, notice })),
       applications,
       support,
-      orders
+      orders,
+      announcement: settings?.announcement || null,
+      welcomeNotice: settings?.welcomeNotice || ''
     })
   }
 
-  if (request.method !== 'PATCH') return methodNotAllowed('GET, POST, PATCH, DELETE')
+  if (request.method !== 'PATCH' && request.method !== 'DELETE') return methodNotAllowed('GET, POST, PATCH, DELETE')
   const parsed = await readJson(request)
   if (parsed.error) return json({ error: parsed.error }, parsed.status)
-  const { collection, id, status } = parsed.value
+  const { collection, id, status, action } = parsed.value
+  if (action === 'announcement') {
+    const text = cleanText(parsed.value.text, 180)
+    const announcement = text ? { text, background: cleanText(parsed.value.background, 32) || '#f0ae42', color: cleanText(parsed.value.color, 32) || '#17202a', fontSize: Math.max(12, Math.min(24, Number(parsed.value.fontSize) || 14)), enabled: parsed.value.enabled !== false, updatedAt: new Date().toISOString() } : null
+    const current = await getRecord('settings', 'site') || {}
+    const welcomeNotice = cleanText(parsed.value.welcomeText, 1000)
+    await putRecord('settings', 'site', { ...current, announcement, welcomeNotice })
+    return json({ announcement, welcomeNotice })
+  }
+  if (action === 'user') {
+    const username = cleanText(parsed.value.username, 16)
+    if (!/^[A-Za-z0-9_]{3,16}$/.test(username)) return json({ error: 'Geçersiz kullanıcı adı.' }, 400)
+    const key = username.toLowerCase()
+    const account = await getRecord('accounts', key)
+    if (!account) return json({ error: 'Kullanıcı bulunamadı.' }, 404)
+    if (request.method === 'DELETE' || parsed.value.operation === 'delete') {
+      await deleteRecord('accounts', key)
+      for (const group of ['applications', 'support', 'orders']) {
+        const matching = await listRecords(group)
+        await Promise.all(matching.filter(record => record.username?.toLowerCase() === key).map(record => deleteRecord(group, record.id)))
+      }
+      return json({ ok: true })
+    }
+    const operation = parsed.value.operation
+    if (operation === 'ban') {
+      const reason = cleanText(parsed.value.reason, 300)
+      if (reason.length < 3) return json({ error: 'Ban gerekçesini yaz.' }, 400)
+      const duration = Number(parsed.value.duration)
+      const until = duration > 0 ? new Date(Date.now() + Math.min(duration, 8760) * 3600000).toISOString() : null
+      const updated = { ...account, ban: { reason, until, createdAt: new Date().toISOString() } }
+      await putRecord('accounts', key, updated)
+      return json({ user: { username, ban: updated.ban } })
+    }
+    if (operation === 'unban') {
+      const updated = { ...account, ban: null }
+      await putRecord('accounts', key, updated)
+      return json({ user: { username, ban: null } })
+    }
+    if (operation === 'notice') {
+      const text = cleanText(parsed.value.text, 1000)
+      const notice = text ? { text, createdAt: new Date().toISOString() } : null
+      await putRecord('accounts', key, { ...account, notice })
+      return json({ user: { username, notice } })
+    }
+    return json({ error: 'Bilinmeyen kullanıcı işlemi.' }, 400)
+  }
   if (!Object.hasOwn(statuses, collection) || typeof id !== 'string' || !statuses[collection].has(status)) return json({ error: 'Geçersiz kayıt veya durum.' }, 400)
   const record = await getRecord(collection, id)
   if (!record) return json({ error: 'Kayıt bulunamadı.' }, 404)

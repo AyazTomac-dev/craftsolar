@@ -1,16 +1,29 @@
 import { randomUUID } from 'node:crypto'
 import { listRecords, putRecord } from './lib/data.mjs'
 import { cleanText, json, methodNotAllowed, readJson } from './lib/http.mjs'
-import { readSession } from './lib/session.mjs'
+import { resolveSession } from './lib/session.mjs'
 
 export default async request => {
-  const session = readSession(request)
+  const session = await resolveSession(request)
+  if (session?.role === 'banned') return json({ error: `Hesabın kısıtlandı. Gerekçe: ${session.ban.reason}` }, 403)
   if (request.method === 'GET') {
     if (!session) return json({ error: 'Hesabına giriş yap.' }, 401)
     const tickets = await listRecords('support')
     return json({ tickets: session.role === 'admin' ? tickets : tickets.filter(ticket => ticket.username.toLowerCase() === session.username.toLowerCase()) })
   }
-  if (request.method !== 'POST') return methodNotAllowed('GET, POST')
+  if (request.method === 'PATCH') {
+    if (session?.role !== 'admin') return json({ error: 'Yönetim oturumu gerekiyor.' }, 401)
+    const parsed = await readJson(request)
+    if (parsed.error) return json({ error: parsed.error }, parsed.status)
+    const ticket = await listRecords('support').then(items => items.find(item => item.id === parsed.value.id))
+    if (!ticket) return json({ error: 'Destek talebi bulunamadı.' }, 404)
+    const reply = cleanText(parsed.value.reply, 3000)
+    if (reply.length < 2) return json({ error: 'Yanıt en az 2 karakter olmalı.' }, 400)
+    const updated = { ...ticket, replies: [...(ticket.replies || []), { text: reply, createdAt: new Date().toISOString() }], status: 'Yanıtlandı', updatedAt: new Date().toISOString() }
+    await putRecord('support', ticket.id, updated)
+    return json({ ticket: updated })
+  }
+  if (request.method !== 'POST') return methodNotAllowed('GET, POST, PATCH')
   if (session?.role !== 'user') return json({ error: 'Destek talebi göndermek için hesabına giriş yap.' }, 401)
   const parsed = await readJson(request)
   if (parsed.error) return json({ error: parsed.error }, parsed.status)

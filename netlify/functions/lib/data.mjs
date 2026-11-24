@@ -15,3 +15,7 @@ export async function listRecords(collection) {
   const records = await Promise.all(blobs.map(blob => dataStore.get(blob.key, { type: 'json', consistency: 'strong' })))
   return records.filter(Boolean).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 }
+
+export async function deleteRecord(collection, id) {
+  return dataStore.delete(`${collection}/${id}`)
+}

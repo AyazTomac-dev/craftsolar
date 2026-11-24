@@ -1,9 +1,10 @@
 import { createHmac, randomBytes, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto'
 import { promisify } from 'node:util'
+import { getRecord } from './data.mjs'
 
 const scrypt = promisify(scryptCallback)
 const COOKIE_NAME = 'craftsolar_session'
-const SESSION_SECONDS = 60 * 60 * 8
+const SESSION_SECONDS = 60 * 60 * 24 * 30
 
 function sessionSecret() {
   const secret = process.env.SESSION_SECRET
@@ -46,6 +47,15 @@ export function readSession(request) {
   } catch {
     return null
   }
+}
+
+export async function resolveSession(request) {
+  const session = readSession(request)
+  if (session?.role !== 'user') return session
+  const account = await getRecord('accounts', session.username.toLowerCase())
+  if (!account) return null
+  if (account.ban && (!account.ban.until || new Date(account.ban.until).getTime() > Date.now())) return { ...session, role: 'banned', ban: account.ban }
+  return session
 }
 
 export function sessionConfigError() {
