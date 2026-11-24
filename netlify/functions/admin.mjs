@@ -68,6 +68,13 @@ export default async request => {
     await putRecord(collection, id, updated)
     return json({ record: updated })
   }
+  if (action === 'delete-record') {
+    if (!['support', 'applications'].includes(collection) || typeof id !== 'string') return json({ error: 'Geçersiz kayıt.' }, 400)
+    const record = await getRecord(collection, id)
+    if (!record) return json({ error: 'Kayıt bulunamadı.' }, 404)
+    await deleteRecord(collection, id)
+    return json({ ok: true })
+  }
   if (action === 'user') {
     const username = cleanText(parsed.value.username, 16)
     if (!/^[A-Za-z0-9_]{3,16}$/.test(username)) return json({ error: 'Geçersiz kullanıcı adı.' }, 400)
