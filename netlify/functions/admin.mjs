@@ -1,6 +1,6 @@
 import { listRecords, getRecord, putRecord, deleteRecord } from './lib/data.mjs'
 import { cleanText, json, methodNotAllowed, readJson } from './lib/http.mjs'
-import { createSession, readSession, sessionConfigError, sessionCookie, verifyAdminPassword } from './lib/session.mjs'
+import { clearSessionCookie, createSession, readAdminSession, sessionConfigError, sessionCookie, verifyAdminPassword } from './lib/session.mjs'
 
 const statuses = {
   applications: new Set(['Bekliyor', 'İnceleniyor', 'Kabul Edildi', 'Reddedildi']),
@@ -18,12 +18,12 @@ export default async request => {
     try { valid = verifyAdminPassword(typeof parsed.value.password === 'string' ? parsed.value.password : '') } catch { return json({ error: 'Yönetim parolası henüz yapılandırılmamış.' }, 503) }
     if (!valid) return json({ error: 'Yönetim parolası hatalı.' }, 401)
     const user = { username: 'CraftSolar Yönetim', role: 'admin' }
-    return json({ user }, 200, { 'Set-Cookie': sessionCookie(createSession(user), request) })
+    return json({ user }, 200, { 'Set-Cookie': sessionCookie(createSession(user), request, 'admin') })
   }
 
-  if (request.method === 'DELETE') return json({ ok: true }, 200, { 'Set-Cookie': `craftsolar_session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0${new URL(request.url).protocol === 'https:' ? '; Secure' : ''}` })
+  if (request.method === 'DELETE') return json({ ok: true }, 200, { 'Set-Cookie': clearSessionCookie(request, 'admin') })
 
-  const session = readSession(request)
+  const session = readAdminSession(request)
   if (session?.role !== 'admin') return json({ error: 'Yönetim oturumu gerekiyor.' }, 401)
 
   if (request.method === 'GET') {
@@ -55,6 +55,18 @@ export default async request => {
     const welcomeNotice = cleanText(parsed.value.welcomeText, 1000)
     await putRecord('settings', 'site', { ...current, announcement, welcomeNotice })
     return json({ announcement, welcomeNotice })
+  }
+  if (action === 'reply') {
+    if (!['support', 'applications'].includes(collection) || typeof id !== 'string') return json({ error: 'Geçersiz başvuru veya destek kaydı.' }, 400)
+    const reply = cleanText(parsed.value.reply, 3000)
+    if (reply.length < 2) return json({ error: 'Yanıt en az 2 karakter olmalı.' }, 400)
+    const record = await getRecord(collection, id)
+    if (!record) return json({ error: 'Kayıt bulunamadı.' }, 404)
+    const updated = collection === 'support'
+      ? { ...record, replies: [...(record.replies || []), { text: reply, createdAt: new Date().toISOString() }], status: 'Yanıtlandı', updatedAt: new Date().toISOString() }
+      : { ...record, adminReply: reply, repliedAt: new Date().toISOString(), status: parsed.value.status && statuses.applications.has(parsed.value.status) ? parsed.value.status : record.status }
+    await putRecord(collection, id, updated)
+    return json({ record: updated })
   }
   if (action === 'user') {
     const username = cleanText(parsed.value.username, 16)

@@ -44,6 +44,7 @@ function App() {
   const [page, setPage] = useState(() => location.hash.replace(/^#\/?/, '') || 'home')
   const [theme, setTheme] = useState(() => localStorage.getItem('craftsolar-theme') || 'dark')
   const [session, setSession] = useState(null)
+  const [adminSession, setAdminSession] = useState(null)
   const [sessionReady, setSessionReady] = useState(false)
   const [cart, setCart] = useState(readCart)
   const [category, setCategory] = useState('Tümü')
@@ -71,11 +72,16 @@ function App() {
   }, [theme])
   useEffect(() => { localStorage.setItem('craftsolar-cart', JSON.stringify(cart)) }, [cart])
   useEffect(() => {
+    if (location.hash.replace(/^#\/?/, '') === ADMIN_ROUTE) api('/api/admin', { method: 'DELETE' }).catch(() => {})
+  }, [])
+  useEffect(() => {
     api('/api/auth').then(data => { setSession(data.user); setSiteNotice({ announcement: data.announcement, notice: data.notice, welcomeNotice: data.welcomeNotice || '' }); setBanNotice(data.ban || null) }).catch(() => setSession(null)).finally(() => setSessionReady(true))
   }, [])
   useEffect(() => {
     const update = () => {
       setPage(location.hash.replace(/^#\/?/, '') || 'home')
+      if (location.hash.replace(/^#\/?/, '') !== ADMIN_ROUTE) setAdminSession(null)
+      if (location.hash.replace(/^#\/?/, '') !== ADMIN_ROUTE) api('/api/admin', { method: 'DELETE' }).catch(() => {})
       setMobileOpen(false)
       setProfileOpen(false)
       setError('')
@@ -181,10 +187,10 @@ function App() {
             }} />
               : page === 'hesabim' ? <AccountPage session={session} sessionReady={sessionReady} orders={orders} openAuth={mode => { setAuthMode(mode); setAuthError('') }} navigate={navigate} signOut={signOut} />
                 : page === 'siparislerim' ? <OrderPage session={session} sessionReady={sessionReady} orders={orders} requireLogin={requireLogin} />
-                : isAdmin ? <AdminPage session={session} sessionReady={sessionReady} signIn={async password => {
+                : isAdmin ? <AdminPage session={adminSession} sessionReady={sessionReady} signIn={async password => {
                   const data = await api('/api/admin', { method: 'POST', body: JSON.stringify({ password }) })
-                  setSession(data.user)
-                }} signOut={async () => { try { await api('/api/admin', { method: 'DELETE' }) } catch { }; setSession(null); navigate('home') }} theme={theme} setTheme={setTheme} />
+                  setAdminSession(data.user)
+                }} signOut={async () => { try { await api('/api/admin', { method: 'DELETE' }) } catch { }; setAdminSession(null); navigate('home') }} theme={theme} setTheme={setTheme} />
                   : <NotFound navigate={navigate} />
 
   return <div className="site-shell">
@@ -247,12 +253,12 @@ function SectionHeading({ label, title, linkLabel, onLink }) {
   return <div className="section-heading"><div><SectionLabel>{label}</SectionLabel><h2>{title}</h2></div>{linkLabel && <button className="text-link" onClick={onLink}>{linkLabel}<ArrowRight size={15} /></button>}</div>
 }
 
-function PageBanner({ number, eyebrow, title, text, action }) {
-  return <section className="page-banner"><div className="page-banner-image" /><div className="page-banner-copy"><SectionLabel>{number} / {eyebrow}</SectionLabel><h1>{title}</h1><p>{text}</p>{action}</div><span className="page-banner-code">CRAFTSOLAR / {number}</span></section>
+function PageBanner({ number, eyebrow, title, text, action, image = true }) {
+  return <section className="page-banner">{image && <div className="page-banner-image" />}<div className="page-banner-copy"><SectionLabel>{number} / {eyebrow}</SectionLabel><h1>{title}</h1><p>{text}</p>{action}</div><span className="page-banner-code">CRAFTSOLAR / {number}</span></section>
 }
 
 function TownyPage({ navigate, copyIp }) {
-  return <><PageBanner number="01" eyebrow="TOWNY DÜNYASI" title={<>Bir harita.<br /><em>Sınırsız ihtimal.</em></>} text="CraftSolar yalnızca Towny. Gerçek dünya haritasında kasabanı kur, kendi hikâyeni yaz." /><section className="towny-intro"><div className="towny-image clay-surface"><img src="/craftsolar-banner.png" alt="CraftSolar Towny dünyası" width="1672" height="836" /><span>GÜNEŞİN ALTINDAKİ YERİNİ AL</span></div><div><SectionLabel>BİR DÜNYA, ORTAK HİKÂYELER</SectionLabel><h2>Gelişmek için<br />birlikte oyna.</h2><p>Kasaba hayatı kaynak toplamaktan fazlası. Komşularınla anlaş, ticaretini büyüt ve kıtanın geleceğinde söz sahibi ol.</p><button className="button button-sun" onClick={copyIp}>Sunucu adresini kopyala <Clipboard size={15} /></button></div></section><section className="feature-section"><SectionHeading label="CRAFTSOLAR’DA" title="Oyunun kendi ritmi." /><div className="feature-grid">{features.map((feature, index) => { const Icon = feature.icon; return <article className="feature-card clay-surface" key={feature.title}><span>0{index + 1}</span><Icon /><h3>{feature.title}</h3><p>{feature.text}</p></article> })}</div></section><Callout navigate={navigate} /></>
+  return <><PageBanner number="01" eyebrow="TOWNY DÜNYASI" title={<>Bir harita.<br /><em>Sınırsız ihtimal.</em></>} text="CraftSolar yalnızca Towny. Gerçek dünya haritasında kasabanı kur, kendi hikâyeni yaz." image={false} /><section className="towny-intro towny-intro-textonly"><div><SectionLabel>BİR DÜNYA, ORTAK HİKÂYELER</SectionLabel><h2>Gelişmek için<br />birlikte oyna.</h2><p>Kasaba hayatı kaynak toplamaktan fazlası. Komşularınla anlaş, ticaretini büyüt ve kıtanın geleceğinde söz sahibi ol.</p><button className="button button-sun" onClick={copyIp}>Sunucu adresini kopyala <Clipboard size={15} /></button></div></section><section className="feature-section"><SectionHeading label="CRAFTSOLAR’DA" title="Oyunun kendi ritmi." /><div className="feature-grid">{features.map((feature, index) => { const Icon = feature.icon; return <article className="feature-card clay-surface" key={feature.title}><span>0{index + 1}</span><Icon /><h3>{feature.title}</h3><p>{feature.text}</p></article> })}</div></section><Callout navigate={navigate} showImage={false} /></>
 }
 
 function GuidePage({ navigate, copyIp }) {
@@ -338,8 +344,8 @@ function EmptyState({ icon: Icon, title, text }) {
   return <div className="empty-state clay-surface"><Icon size={25} /><h2>{title}</h2><p>{text}</p></div>
 }
 
-function Callout({ navigate }) {
-  return <section className="callout clay-surface"><img src="/craftsolar-emblem.png" alt="" width="2048" height="2048" /><div><SectionLabel>SENİ BEKLİYORUZ</SectionLabel><h2>Güneşin altında yerini al.</h2><p>Sunucuya katıl, kendi Towny hikâyeni başlat.</p></div><button className="button button-sun" onClick={() => navigate('rehber')}>Nasıl katılırım? <ArrowRight size={15} /></button></section>
+function Callout({ navigate, showImage = true }) {
+  return <section className="callout clay-surface">{showImage && <img src="/craftsolar-emblem.png" alt="" width="2048" height="2048" />}<div><SectionLabel>SENİ BEKLİYORUZ</SectionLabel><h2>Güneşin altında yerini al.</h2><p>Sunucuya katıl, kendi Towny hikâyeni başlat.</p></div><button className="button button-sun" onClick={() => navigate('rehber')}>Nasıl katılırım? <ArrowRight size={15} /></button></section>
 }
 
 function NotFound({ navigate }) {
@@ -390,7 +396,7 @@ function AdminPage({ session, sessionReady, signIn, signOut, theme, setTheme }) 
   const replyRecord = async (collection, record, reply, status) => {
     setBusy(true)
     setPageError('')
-    try { await api(collection === 'support' ? '/api/support' : '/api/applications', { method: 'PATCH', body: JSON.stringify({ id: record.id, reply, status }) }); await refresh() }
+    try { await api('/api/admin', { method: 'PATCH', body: JSON.stringify({ action: 'reply', collection, id: record.id, reply, status }) }); await refresh() }
     catch (reason) { setPageError(reason.message) }
     finally { setBusy(false) }
   }

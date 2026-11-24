@@ -3,7 +3,8 @@ import { promisify } from 'node:util'
 import { getRecord } from './data.mjs'
 
 const scrypt = promisify(scryptCallback)
-const COOKIE_NAME = 'craftsolar_session'
+const USER_COOKIE = 'craftsolar_user_session'
+const ADMIN_COOKIE = 'craftsolar_admin_session'
 const SESSION_SECONDS = 60 * 60 * 24 * 30
 
 function sessionSecret() {
@@ -21,19 +22,24 @@ export function createSession(payload) {
   return `${body}.${signature(body)}`
 }
 
-export function sessionCookie(token, request) {
-  const secure = new URL(request.url).protocol === 'https:'
-  return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${SESSION_SECONDS}${secure ? '; Secure' : ''}`
-}
-
-export function clearSessionCookie(request) {
-  const secure = new URL(request.url).protocol === 'https:'
-  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0${secure ? '; Secure' : ''}`
-}
-
-export function readSession(request) {
+function cookieValue(request, cookieName) {
   const cookie = request.headers.get('cookie') || ''
-  const token = cookie.split(';').map(part => part.trim()).find(part => part.startsWith(`${COOKIE_NAME}=`))?.slice(COOKIE_NAME.length + 1)
+  return cookie.split(';').map(part => part.trim()).find(part => part.startsWith(`${cookieName}=`))?.slice(cookieName.length + 1)
+}
+
+export function sessionCookie(token, request, role = 'user') {
+  const secure = new URL(request.url).protocol === 'https:'
+  const cookieName = role === 'admin' ? ADMIN_COOKIE : USER_COOKIE
+  return `${cookieName}=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${SESSION_SECONDS}${secure ? '; Secure' : ''}`
+}
+
+export function clearSessionCookie(request, role = 'user') {
+  const secure = new URL(request.url).protocol === 'https:'
+  const cookieName = role === 'admin' ? ADMIN_COOKIE : USER_COOKIE
+  return `${cookieName}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0${secure ? '; Secure' : ''}`
+}
+
+function parseSession(token) {
   if (!token) return null
   const [body, received, extra] = token.split('.')
   if (!body || !received || extra) return null
@@ -49,9 +55,19 @@ export function readSession(request) {
   }
 }
 
+export function readUserSession(request) {
+  const session = parseSession(cookieValue(request, USER_COOKIE))
+  return session?.role === 'user' ? session : null
+}
+
+export function readAdminSession(request) {
+  const session = parseSession(cookieValue(request, ADMIN_COOKIE))
+  return session?.role === 'admin' ? session : null
+}
+
 export async function resolveSession(request) {
-  const session = readSession(request)
-  if (session?.role !== 'user') return session
+  const session = readUserSession(request)
+  if (session?.role !== 'user') return null
   const account = await getRecord('accounts', session.username.toLowerCase())
   if (!account) return null
   if (account.ban && (!account.ban.until || new Date(account.ban.until).getTime() > Date.now())) return { ...session, role: 'banned', ban: account.ban }

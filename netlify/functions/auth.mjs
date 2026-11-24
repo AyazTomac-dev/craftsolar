@@ -1,13 +1,13 @@
 import { randomUUID } from 'node:crypto'
 import { getRecord, listRecords, putRecord } from './lib/data.mjs'
 import { json, methodNotAllowed, readJson } from './lib/http.mjs'
-import { clearSessionCookie, createSession, hashPassword, readSession, sessionConfigError, sessionCookie, verifyPassword } from './lib/session.mjs'
+import { clearSessionCookie, createSession, hashPassword, readUserSession, sessionConfigError, sessionCookie, verifyPassword } from './lib/session.mjs'
 
 const namePattern = /^[A-Za-z0-9_]{3,16}$/
 
 export default async request => {
   if (request.method === 'GET') {
-    const session = readSession(request)
+    const session = readUserSession(request)
     const settings = await getRecord('settings', 'site')
     if (session?.role === 'user') {
       const account = await getRecord('accounts', session.username.toLowerCase())

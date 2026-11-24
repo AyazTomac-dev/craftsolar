@@ -15,6 +15,8 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
 .towny-intro{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}
+.towny-intro-textonly{display:block;max-width:1180px}
+.towny-intro-textonly>div{max-width:720px;padding:0 clamp(16px,5vw,60px)}
 .towny-intro>*{min-width:0}
 .towny-image{height:auto;aspect-ratio:16/9;min-height:0}
 .towny-image img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
