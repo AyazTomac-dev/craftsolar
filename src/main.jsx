@@ -65,6 +65,7 @@ function App() {
   const [copied, setCopied] = useState(false)
   const [siteNotice, setSiteNotice] = useState({ announcement: null, notice: null, welcomeNotice: '' })
   const [banNotice, setBanNotice] = useState(null)
+  const [deletedNotice, setDeletedNotice] = useState(null)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -75,7 +76,7 @@ function App() {
     if (location.hash.replace(/^#\/?/, '') === ADMIN_ROUTE) api('/api/admin', { method: 'DELETE' }).catch(() => {})
   }, [])
   useEffect(() => {
-    api('/api/auth').then(data => { setSession(data.user); setSiteNotice({ announcement: data.announcement, notice: data.notice, welcomeNotice: data.welcomeNotice || '' }); setBanNotice(data.ban || null) }).catch(() => setSession(null)).finally(() => setSessionReady(true))
+    api('/api/auth').then(data => { setSession(data.user); setSiteNotice({ announcement: data.announcement, notice: data.notice, welcomeNotice: data.welcomeNotice || '' }); setBanNotice(data.ban || null); setDeletedNotice(data.deleted || null) }).catch(() => setSession(null)).finally(() => setSessionReady(true))
   }, [])
   useEffect(() => {
     const update = () => {
@@ -146,6 +147,7 @@ function App() {
       const state = await api('/api/auth')
       setSiteNotice({ announcement: state.announcement, notice: state.notice, welcomeNotice: state.welcomeNotice || '' })
       setBanNotice(null)
+      setDeletedNotice(null)
       setAuthMode(null)
       setToast(authMode === 'register' ? 'Hesabın oluşturuldu' : 'Giriş yaptın')
     } catch (reason) { setAuthError(reason.message) }
@@ -197,6 +199,7 @@ function App() {
     {siteNotice.announcement?.enabled && siteNotice.announcement.text && <a className="announcement-ticker" style={{ '--ticker-bg': siteNotice.announcement.background, '--ticker-color': siteNotice.announcement.color, '--ticker-size': `${siteNotice.announcement.fontSize}px` }} href="#/magaza"><span>{siteNotice.announcement.text}</span><span>{siteNotice.announcement.text}</span><span>{siteNotice.announcement.text}</span></a>}
     {siteNotice.notice && session?.role === 'user' && <div className="site-personal-notice"><BellRing size={16} />{siteNotice.notice.text}<button onClick={() => setSiteNotice(current => ({ ...current, notice: null }))} aria-label="Mesajı kapat"><X size={15} /></button></div>}
     {banNotice && <div className="ban-notice"><Ban size={17} /><span>Hesabın kısıtlandı · {banNotice.reason}{banNotice.until ? ` · ${new Date(banNotice.until).toLocaleString('tr-TR')} tarihine kadar` : ''}</span></div>}
+    {deletedNotice && <div className="ban-notice deleted-notice"><Trash2 size={17} /><span>Hesabın yönetim tarafından silinmiş. Gerekçe: {deletedNotice.reason}</span></div>}
     {!isAdmin && <>
       <div className="announce"><span className="announce-mark" /> CraftSolar Towny dünyasına hoş geldin <a href={DISCORD} target="_blank" rel="noreferrer">Discord’a katıl <ArrowUpRight size={13} /></a></div>
       <header className="header clay-surface">
@@ -420,7 +423,8 @@ function AdminUserCard({ user, busy, action }) {
   const [reason, setReason] = useState('')
   const [duration, setDuration] = useState('0')
   const [notice, setNotice] = useState(user.notice?.text || '')
-  return <article className="admin-user-card clay-surface"><div className="admin-user"><span>{user.username.slice(0, 1).toUpperCase()}</span><div><b>{user.username}</b><small>Kayıt: {formatDate(user.createdAt)}</small></div></div>{user.ban && <p className="user-ban-state">Banlı · {user.ban.reason}{user.ban.until ? ` · ${new Date(user.ban.until).toLocaleString('tr-TR')} bitiş` : ' · Süresiz'}</p>}<label>HESABA ÖZEL MESAJ<textarea rows="2" maxLength="1000" value={notice} onChange={event => setNotice(event.target.value)} placeholder="Bu kullanıcı giriş yapınca göreceği mesaj" /></label><div className="admin-actions"><button className="button button-clay" disabled={busy} onClick={() => action({ action: 'user', operation: 'notice', username: user.username, text: notice })}><BellRing size={14} /> Mesajı kaydet</button>{user.ban ? <button className="button button-clay" disabled={busy} onClick={() => action({ action: 'user', operation: 'unban', username: user.username })}>Banı kaldır</button> : <><input className="admin-reason" value={reason} onChange={event => setReason(event.target.value)} placeholder="Ban gerekçesi" /><select value={duration} onChange={event => setDuration(event.target.value)}><option value="0">Süresiz</option><option value="1">1 saat</option><option value="24">1 gün</option><option value="168">7 gün</option><option value="720">30 gün</option></select><button className="button button-clay" disabled={busy} onClick={() => action({ action: 'user', operation: 'ban', username: user.username, reason, duration })}><Ban size={14} /> Banla</button></>}<button className="button button-danger" disabled={busy} onClick={() => { if (confirm(`${user.username} hesabı ve ilişkili kayıtları kalıcı olarak silinsin mi?`)) action({ action: 'user', operation: 'delete', username: user.username }, 'DELETE') }}><Trash2 size={14} /> Hesabı sil</button></div></article>
+  const [deleteReason, setDeleteReason] = useState('')
+  return <article className="admin-user-card clay-surface"><div className="admin-user"><span>{user.username.slice(0, 1).toUpperCase()}</span><div><b>{user.username}</b><small>Kayıt: {formatDate(user.createdAt)}</small></div></div>{user.ban && <p className="user-ban-state">Banlı · {user.ban.reason}{user.ban.until ? ` · ${new Date(user.ban.until).toLocaleString('tr-TR')} bitiş` : ' · Süresiz'}</p>}<label>HESABA ÖZEL MESAJ<textarea rows="2" maxLength="1000" value={notice} onChange={event => setNotice(event.target.value)} placeholder="Bu kullanıcı giriş yapınca göreceği mesaj" /></label><div className="admin-actions"><button className="button button-clay" disabled={busy} onClick={() => action({ action: 'user', operation: 'notice', username: user.username, text: notice })}><BellRing size={14} /> Mesajı kaydet</button>{user.ban ? <button className="button button-clay" disabled={busy} onClick={() => action({ action: 'user', operation: 'unban', username: user.username })}>Banı kaldır</button> : <><input className="admin-reason" value={reason} onChange={event => setReason(event.target.value)} placeholder="Ban gerekçesi" /><select value={duration} onChange={event => setDuration(event.target.value)}><option value="0">Süresiz</option><option value="1">1 saat</option><option value="24">1 gün</option><option value="168">7 gün</option><option value="720">30 gün</option></select><button className="button button-clay" disabled={busy || reason.trim().length < 3} onClick={() => action({ action: 'user', operation: 'ban', username: user.username, reason, duration })}><Ban size={14} /> Banla</button></>}<input className="admin-reason" value={deleteReason} onChange={event => setDeleteReason(event.target.value)} placeholder="Hesap silme gerekçesi" /><button className="button button-danger" disabled={busy || deleteReason.trim().length < 3} onClick={() => { if (confirm(`${user.username} hesabı silinsin mi? Silme gerekçesi kullanıcıya gösterilir.`)) action({ action: 'user', operation: 'delete', username: user.username, reason: deleteReason }) }}><Trash2 size={14} /> Hesabı sil</button></div></article>
 }
 
 function AdminRecords({ collection, records, busy, changeStatus, replyRecord }) {
@@ -438,5 +442,21 @@ function ReplyBox({ busy, onSend }) {
   return <form className="admin-reply" onSubmit={event => { event.preventDefault(); onSend(reply); setReply('') }}><textarea rows="2" maxLength="3000" value={reply} onChange={event => setReply(event.target.value)} placeholder="Oyuncuya yanıt yaz" required /><button className="button button-sun" disabled={busy}><Send size={14} /> Yanıtla</button></form>
 }
 
-createRoot(document.getElementById('root')).render(<App />)
+class SiteErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { failed: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+
+  render() {
+    if (this.state.failed) return <main className="admin-page"><section className="admin-login-panel glass-surface"><SectionLabel>CRAFTSOLAR / YÖNETİM</SectionLabel><h1>Panel yüklenemedi.</h1><p>Panelde görüntüleme hatası oluştu. Yenileyip tekrar giriş yap.</p><button className="button button-sun form-submit" onClick={() => location.reload()}>Sayfayı yenile <ArrowRight size={16} /></button></section></main>
+    return this.props.children
+  }
+}
+
+createRoot(document.getElementById('root')).render(<SiteErrorBoundary><App /></SiteErrorBoundary>)
 

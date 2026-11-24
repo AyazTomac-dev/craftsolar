@@ -35,7 +35,7 @@ export default async request => {
       getRecord('settings', 'site')
     ])
     return json({
-      users: accounts.map(({ username, createdAt, ban, notice }) => ({ username, createdAt, ban, notice })),
+      users: accounts.filter(account => !account.deletedAt).map(({ username, createdAt, ban, notice }) => ({ username, createdAt, ban, notice })),
       applications,
       support,
       orders,
@@ -74,8 +74,10 @@ export default async request => {
     const key = username.toLowerCase()
     const account = await getRecord('accounts', key)
     if (!account) return json({ error: 'Kullanıcı bulunamadı.' }, 404)
-    if (request.method === 'DELETE' || parsed.value.operation === 'delete') {
-      await deleteRecord('accounts', key)
+    if (parsed.value.operation === 'delete') {
+      const reason = cleanText(parsed.value.reason, 300)
+      if (reason.length < 3) return json({ error: 'Hesap silme gerekçesini yaz.' }, 400)
+      await putRecord('accounts', key, { id: account.id, username: account.username, createdAt: account.createdAt, deletedAt: new Date().toISOString(), deletionReason: reason })
       for (const group of ['applications', 'support', 'orders']) {
         const matching = await listRecords(group)
         await Promise.all(matching.filter(record => record.username?.toLowerCase() === key).map(record => deleteRecord(group, record.id)))

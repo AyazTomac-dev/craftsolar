@@ -11,7 +11,8 @@ export default async request => {
     const settings = await getRecord('settings', 'site')
     if (session?.role === 'user') {
       const account = await getRecord('accounts', session.username.toLowerCase())
-      if (!account || account.deletedAt) return json({ user: null, announcement: settings?.announcement || null })
+      if (!account) return json({ user: null, announcement: settings?.announcement || null })
+      if (account.deletedAt) return json({ user: null, deleted: { reason: account.deletionReason || 'Yönetim tarafından silindi.' }, announcement: settings?.announcement || null, welcomeNotice: settings?.welcomeNotice || '' })
       if (account.ban && (!account.ban.until || new Date(account.ban.until).getTime() > Date.now())) return json({ user: null, ban: account.ban, announcement: settings?.announcement || null, welcomeNotice: settings?.welcomeNotice || '' })
       const personalNotice = account.notice && (!account.notice.until || new Date(account.notice.until).getTime() > Date.now()) ? account.notice : null
       return json({ user: { username: session.username, role: session.role }, announcement: settings?.announcement || null, notice: personalNotice, welcomeNotice: settings?.welcomeNotice || '' })
@@ -37,6 +38,7 @@ export default async request => {
   const accountKey = username.toLowerCase()
   const key = `accounts/${accountKey}`
   let account = await getRecord('accounts', accountKey)
+  if (account?.deletedAt) return json({ error: `Bu hesap yönetim tarafından silindi. Gerekçe: ${account.deletionReason || 'Belirtilmedi.'}` }, 403)
 
   if (action === 'register') {
     if (account) return json({ error: 'Bu Minecraft nickiyle bir hesap zaten var.' }, 409)
